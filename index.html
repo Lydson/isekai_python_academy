@@ -1,0 +1,2197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Isekai Python Academy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a light-novel page on the left, the hero's "System Window" workbench (spell editor + terminal) on the right.
+   Dark night-world is the default look; a "daylight guild hall" palette is available through the theme button. */
+:root {
+  color-scheme: dark;
+  --night: #110f1d;
+  --glow: #231c45;
+  --panel: #1a1729;
+  --panel-2: #221e36;
+  --line: #34304f;
+  --parch: #ece4cf;
+  --strong: #ffffff;
+  --muted: #a39cbd;
+  --gold: #e6c36a;
+  --on-gold: #2a1f05;
+  --system: #74b9ff;
+  --on-system: #0b1830;
+  --system-dim: #1d2e4a;
+  --sys-border: #355a8c;
+  --gutter-bg: #0d0b17;
+  --term-bg: #08070f;
+  --quest-a: #2a2316;
+  --quest-b: #1d1912;
+  --quest-border: #5d4c22;
+  --ok: #7fd69a;
+  --ok-bg: #16301f;
+  --done-border: #2f5a3d;
+  --bad: #ff8a80;
+  --bad-bg: #3a1a1c;
+  --warn: #ffcf70;
+  --kw: #d4a5ff;
+  --str: #b5e08a;
+  --num: #ffb37a;
+  --com: #7d7899;
+  --display: "Grenze Gotisch", "Palatino Linotype", Georgia, serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --night: #f3f1f8; --glow: #e3dcf7; --panel: #ffffff; --panel-2: #ebe7f4; --line: #d3cde3;
+    --parch: #1e1930; --strong: #000000; --muted: #5c5577; --gold: #8f6200; --on-gold: #ffffff;
+    --system: #1c5fc2; --on-system: #ffffff; --system-dim: #e4eefc; --sys-border: #9dbbe8;
+    --gutter-bg: #f1eff7; --term-bg: #fbfaff; --quest-a: #fbf3df; --quest-b: #f7edd3; --quest-border: #dcc58a;
+    --ok: #18794a; --ok-bg: #dff3e6; --done-border: #9fd0b2; --bad: #b8322a; --bad-bg: #fbe3e1; --warn: #8a5a00;
+    --kw: #7a3cc2; --str: #3b7613; --num: #ad4f00; --com: #8a84a1;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --night: #f3f1f8; --glow: #e3dcf7; --panel: #ffffff; --panel-2: #ebe7f4; --line: #d3cde3;
+  --parch: #1e1930; --strong: #000000; --muted: #5c5577; --gold: #8f6200; --on-gold: #ffffff;
+  --system: #1c5fc2; --on-system: #ffffff; --system-dim: #e4eefc; --sys-border: #9dbbe8;
+  --gutter-bg: #f1eff7; --term-bg: #fbfaff; --quest-a: #fbf3df; --quest-b: #f7edd3; --quest-border: #dcc58a;
+  --ok: #18794a; --ok-bg: #dff3e6; --done-border: #9fd0b2; --bad: #b8322a; --bad-bg: #fbe3e1; --warn: #8a5a00;
+  --kw: #7a3cc2; --str: #3b7613; --num: #ad4f00; --com: #8a84a1;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  background: var(--night);
+  color: var(--parch);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 28px;
+  background-image: radial-gradient(1200px 500px at 80% -10%, var(--glow) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--system); outline-offset: 2px; }
+
+.wrap { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+header.hud {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  border-bottom: 1px solid var(--line); padding-bottom: 12px;
+}
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; min-width: 0; }
+.brand h1 { font-family: var(--display); font-weight: 700; font-size: 2rem; margin: 0; color: var(--gold); letter-spacing: .01em; line-height: 1.1; }
+.brand span { color: var(--muted); font-size: .9rem; font-style: italic; }
+.right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+@media (max-width: 900px) { .right { align-items: flex-start; } }
+.stats { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-family: var(--mono); font-size: .8rem; }
+.stat-label { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.lv { color: var(--gold); font-weight: 600; font-size: 1rem; }
+.xpbar { width: 150px; height: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--system), var(--gold)); width: 0%; transition: width .6s ease; }
+#pyStatus { color: var(--warn); }
+#pyStatus.ready { color: var(--ok); }
+.settings { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button, .theme-btn {
+  background: var(--panel); color: var(--muted); border: none; padding: 4px 10px; font-family: var(--mono); font-size: .75rem;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--system); color: var(--on-system); font-weight: 600; }
+.theme-btn { border: 1px solid var(--line); border-radius: 6px; color: var(--parch); }
+
+nav.chapters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+nav.chapters button {
+  flex: 0 0 auto; background: transparent; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-family: var(--mono); font-size: .78rem; white-space: nowrap;
+}
+nav.chapters button.active { background: var(--gold); color: var(--on-gold); border-color: var(--gold); font-weight: 600; }
+nav.chapters button.done:not(.active) { color: var(--ok); border-color: var(--done-border); }
+nav.chapters button.done::before { content: "✓ "; }
+
+main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+
+article.story { min-width: 0; max-width: 68ch; }
+.arc { font-family: var(--mono); font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--system); margin: 4px 0 0; }
+article.story h2 { font-family: var(--display); font-weight: 500; font-size: 2.3rem; line-height: 1.1; margin: 4px 0 14px; color: var(--parch); text-wrap: balance; }
+article.story p { margin: 0 0 14px; }
+article.story h3 { font-family: var(--display); font-weight: 500; font-size: 1.45rem; color: var(--gold); margin: 26px 0 8px; }
+article.story ul { padding-left: 1.2em; margin: 0 0 14px; }
+article.story li { margin-bottom: 6px; }
+.dialogue { color: var(--gold); }
+code.i { font-family: var(--mono); font-size: .86em; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; color: var(--parch); }
+
+.sysmsg {
+  font-family: var(--mono); font-size: .85rem; color: var(--system);
+  background: var(--system-dim); border: 1px solid var(--sys-border); border-radius: 6px;
+  padding: 10px 14px; margin: 0 0 14px;
+}
+.sysmsg b { color: var(--strong); font-weight: 600; }
+
+.codeblock { position: relative; margin: 0 0 14px; }
+.codeblock pre {
+  margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 12px 14px; overflow-x: auto; font-family: var(--mono); font-size: .84rem; line-height: 1.55;
+}
+.codeblock button {
+  position: absolute; top: 6px; right: 6px; background: var(--panel-2); color: var(--system);
+  border: 1px solid var(--sys-border); border-radius: 4px; font-family: var(--mono); font-size: .72rem; padding: 2px 8px;
+}
+.codeblock button:hover { background: var(--system-dim); }
+.tk-kw { color: var(--kw); } .tk-str { color: var(--str); } .tk-num { color: var(--num); } .tk-com { color: var(--com); font-style: italic; } .tk-fn { color: var(--system); }
+
+.quest {
+  border: 1px solid var(--quest-border); background: linear-gradient(180deg, var(--quest-a), var(--quest-b));
+  border-radius: 8px; padding: 14px 16px; margin: 22px 0 14px;
+}
+.quest h3 { margin: 0 0 6px !important; }
+.quest .reward { font-family: var(--mono); font-size: .75rem; color: var(--gold); letter-spacing: .08em; text-transform: uppercase; }
+.quest .reward.cleared { color: var(--ok); }
+.quest ol { margin: 8px 0 0; padding-left: 1.3em; }
+.quest-sys { font-family: var(--mono); font-size: .78rem; color: var(--system); margin: 0 0 8px !important; }
+.quest-sys b { color: var(--strong); }
+.quest-how { margin: 10px 0 0 !important; font-size: .9rem; color: var(--muted); }
+.hint { margin-top: 10px; }
+.hint button { background: none; border: none; color: var(--muted); text-decoration: underline; padding: 0; font-size: .85rem; }
+.hint p { margin: 6px 0 0 !important; font-size: .9rem; color: var(--muted); font-family: var(--mono); }
+
+.guild { border-left: 3px solid var(--system); padding: 4px 0 4px 14px; margin: 22px 0 0; }
+.guild h4 { margin: 0 0 6px; font-family: var(--mono); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--system); }
+.guild dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: .92rem; }
+.guild dt { font-weight: 600; color: var(--parch); }
+.guild dd { margin: 0; color: var(--muted); }
+@media (max-width: 480px) { .guild dl { grid-template-columns: 1fr; } .guild dd { margin-bottom: 6px; } }
+
+.pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 24px; }
+.pager button { background: var(--panel); color: var(--parch); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font-size: .9rem; }
+.pager button:disabled { opacity: .35; cursor: default; }
+
+section.bench {
+  min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px);
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--panel); border: 1px solid var(--sys-border); border-radius: 10px; padding: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.18);
+}
+@media (max-width: 900px) { section.bench { position: static; } }
+.bench-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: var(--mono); font-size: .75rem; color: var(--system); letter-spacing: .1em; text-transform: uppercase; }
+.bench-head .file { color: var(--muted); text-transform: none; letter-spacing: 0; }
+
+.editor { display: flex; background: var(--term-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.gutter {
+  font-family: var(--mono); font-size: .84rem; line-height: 1.55; color: var(--com); text-align: right;
+  padding: 10px 8px; user-select: none; background: var(--gutter-bg); min-width: 38px; white-space: pre; overflow: hidden;
+}
+#code {
+  flex: 1; min-width: 0; height: 280px; resize: vertical; border: none; outline: none;
+  background: transparent; color: var(--parch); font-family: var(--mono); font-size: .84rem; line-height: 1.55;
+  padding: 10px 12px; tab-size: 4; white-space: pre; overflow: auto;
+}
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { border-radius: 6px; padding: 7px 14px; font-size: .88rem; border: 1px solid var(--line); background: var(--panel-2); color: var(--parch); }
+.btn:hover { border-color: var(--muted); }
+.btn.run { background: var(--system); color: var(--on-system); border-color: var(--system); font-weight: 600; padding-inline: 18px; }
+.btn:disabled { opacity: .5; cursor: wait; }
+.kbd { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-left: auto; }
+
+.feedback {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
+  border-radius: 6px; padding: 10px 12px; font-size: .92rem; border: 1px solid var(--line);
+}
+.feedback.ok { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.feedback.fail { background: var(--quest-a); border-color: var(--quest-border); color: var(--parch); }
+.feedback.err { background: var(--bad-bg); border-color: var(--bad); color: var(--parch); }
+.feedback .fb-title { font-weight: 600; display: block; }
+.feedback.fail .fb-title { color: var(--gold); }
+.feedback.err .fb-title { color: var(--bad); }
+.feedback .fb-msg { font-family: var(--mono); font-size: .8rem; }
+.feedback > div { min-width: 0; flex: 1 1 240px; }
+.feedback button { background: var(--ok); color: var(--panel); border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; }
+
+.term {
+  background: var(--term-bg); border: 1px solid var(--line); border-radius: 6px; font-family: var(--mono); font-size: .82rem; line-height: 1.5;
+  display: flex; flex-direction: column; min-height: 0;
+}
+#out { padding: 10px 12px; height: 210px; overflow: auto; white-space: pre-wrap; word-break: break-word; resize: vertical; }
+#out .o-out { color: var(--parch); }
+#out .o-err { color: var(--bad); }
+#out .o-sys { color: var(--system); }
+#out .o-ok { color: var(--ok); }
+#out .o-gold { color: var(--gold); }
+#out .o-dim { color: var(--com); }
+.repl { display: flex; align-items: center; border-top: 1px solid var(--line); padding: 6px 12px; gap: 8px; }
+.repl label { color: var(--gold); }
+#replIn { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--parch); font-family: var(--mono); font-size: .82rem; }
+
+footer.credit {
+  margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px;
+  font-family: var(--mono); font-size: .78rem; color: var(--muted);
+}
+footer.credit .by { font-family: var(--display); font-size: 1.25rem; color: var(--gold); letter-spacing: .02em; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px);
+  background: var(--system-dim); color: var(--strong); border: 1px solid var(--system); border-radius: 8px; padding: 10px 18px;
+  font-family: var(--mono); font-size: .85rem; opacity: 0; pointer-events: none; transition: all .35s ease; z-index: 20; max-width: calc(100% - 32px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media (prefers-reduced-motion: reduce) { .toast, .xpbar i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hud">
+    <div class="brand">
+      <h1>Isekai Python Academy</h1>
+      <span data-i18n="subtitle"></span>
+    </div>
+    <div class="right">
+      <div class="stats" aria-live="polite">
+        <span><span class="stat-label" data-i18n="hero"></span> Lydson</span>
+        <span class="lv" id="lv">Lv. 1</span>
+        <span class="xpbar" title="XP"><i id="xpfill"></i></span>
+        <span id="xptext">0 XP</span>
+        <span id="pyStatus"></span>
+      </div>
+      <div class="settings">
+        <div class="seg" role="group" aria-label="Language" id="langSeg">
+          <button data-lang="en">EN</button><button data-lang="es">ES</button><button data-lang="pt">PT-BR</button>
+        </div>
+        <button class="theme-btn" id="themeBtn"></button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="chapters" id="tabs" aria-label="Chapters"></nav>
+
+  <main>
+    <article class="story" id="story"></article>
+
+    <section class="bench" aria-label="Spellbook">
+      <div class="bench-head"><span data-i18n="benchTitle"></span><span class="file">spell.py</span></div>
+      <div class="editor">
+        <div class="gutter" id="gutter" aria-hidden="true">1</div>
+        <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Python code editor"></textarea>
+      </div>
+      <div class="controls">
+        <button class="btn run" id="runBtn" disabled data-i18n="cast"></button>
+        <button class="btn" id="resetBtn" data-i18n="reset"></button>
+        <button class="btn" id="clearBtn" data-i18n="clear"></button>
+        <span class="kbd" data-i18n="kbd"></span>
+      </div>
+      <div class="feedback" id="feedback" hidden aria-live="polite">
+        <div><span class="fb-title" id="fbTitle"></span><span class="fb-msg" id="fbMsg"></span></div>
+        <button id="fbNext" hidden></button>
+      </div>
+      <div class="term">
+        <div id="out" role="log" aria-live="polite"></div>
+        <div class="repl">
+          <label for="replIn">&gt;&gt;&gt;</label>
+          <input id="replIn" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="credit">
+    <span class="by">made by Lydson</span>
+    <span data-i18n="footer"></span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/brython@3.13.2/brython.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brython@3.13.2/brython_stdlib.js"></script>
+
+<script type="text/python">
+from browser import window
+import sys
+
+_state = {"buf": [], "ns": {}}
+
+class _Writer:
+    def __init__(self, kind):
+        self.kind = kind
+    def write(self, s):
+        s = str(s)
+        _state["buf"].append(s)
+        window.termWrite(s, self.kind)
+        return len(s)
+    def flush(self):
+        pass
+
+def _sealed_input(prompt=""):
+    raise RuntimeError(window.uiText("input"))
+
+def _make_guard():
+    count = [0]
+    def g():
+        count[0] += 1
+        if count[0] > 200000:
+            raise RuntimeError(window.uiText("loop"))
+        return True
+    return g
+
+def _new_ns():
+    return {"__name__": "__main__", "input": _sealed_input, "__g": _make_guard()}
+
+def _report(e):
+    name = type(e).__name__
+    line = getattr(e, "lineno", None)
+    if line is None:
+        tb = e.__traceback__
+        while tb is not None:
+            if tb.tb_frame.f_code.co_filename == "spell.py":
+                line = tb.tb_lineno
+            tb = tb.tb_next
+    window.reportError(name, str(e), line or 0)
+
+def py_run(src, test, lang):
+    _state["buf"] = []
+    ns = _new_ns()
+    _state["ns"] = ns
+    old_out, old_err = sys.stdout, sys.stderr
+    sys.stdout = _Writer("out")
+    sys.stderr = _Writer("err")
+    try:
+        try:
+            exec(compile(src, "spell.py", "exec"), ns)
+        except BaseException as e:
+            _report(e)
+            return "error"
+        if test:
+            tns = dict(ns)
+            tns["OUT"] = "".join(_state["buf"])
+            tns["SRC"] = src
+            tns["T"] = lambda en, es, pt: {"en": en, "es": es, "pt": pt}.get(lang, en)
+            sys.stdout = _Writer("dim")
+            try:
+                exec(test, tns)
+            except AssertionError as e:
+                return "fail:" + str(e)
+            except BaseException as e:
+                return "fail:" + window.uiText("crashed") + " " + type(e).__name__ + ": " + str(e)
+        return "ok"
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
+def py_repl(line):
+    ns = _state["ns"] or _new_ns()
+    _state["ns"] = ns
+    old_out, old_err = sys.stdout, sys.stderr
+    sys.stdout = _Writer("out")
+    sys.stderr = _Writer("err")
+    try:
+        try:
+            val = eval(compile(line, "<repl>", "eval"), ns)
+            if val is not None:
+                window.termWrite(repr(val) + "\n", "out")
+        except SyntaxError:
+            exec(compile(line, "<repl>", "exec"), ns)
+    except BaseException as e:
+        _report(e)
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
+window.pyRun = py_run
+window.pyRepl = py_repl
+window.pyReady()
+</script>
+
+<script>
+const UI = {
+  en: {
+    subtitle: "Reborn in a world where every spell is real Python.",
+    hero: "Hero",
+    loading: "● Summoning Python…", ready: "● Python awakened", failed: "● Python failed to load", slow: "● Python still loading…",
+    toDark: "☾ Dark mode", toLight: "☀ Light mode",
+    benchTitle: "System Window · Spellbook",
+    cast: "▶ Cast spell", reset: "Reset", clear: "Clear log", kbd: "Ctrl/⌘ + Enter to cast",
+    replPh: "Try a quick line, e.g. 2 + 2",
+    footer: "Real Python 3 running in your browser · progress is saved on this device",
+    chapterOf: (n, t) => `Chapter ${n} of ${t}`,
+    questReward: "Quest · Reward", cleared: "cleared ✓",
+    questSys: (t) => `[SYSTEM] ❖ New quest received: <b>${t}</b>. Accept? ▸ Yes &nbsp;▸ Yes`,
+    yourQuest: "Your quest",
+    questHow: "Write your code in the Spellbook and press <strong>Cast spell</strong>. The System checks your quest every time you cast and tells you what is missing.",
+    hintBtn: "Ask Def-sensei for a hint",
+    guild: "Guild English notes",
+    prev: "← Previous chapter", next: "Next chapter →",
+    load: "Load ▸", loadTitle: "Copy this example into the editor",
+    line: "line",
+    bound: "[SYSTEM] Python 3 interpreter bound to your soul. Write a spell and press Cast.",
+    casting: "── Casting spell.py ──",
+    notYet: "[SYSTEM] Quest not complete yet:",
+    complete: (t) => `[SYSTEM] ✦ QUEST COMPLETE: ${t} ✦`,
+    again: "[SYSTEM] Quest already cleared. No extra XP, but practice still counts.",
+    allDone: "[SYSTEM] All chapters cleared. Title acquired: 《Pythonic Sage》",
+    nextUnlocked: (t) => `[SYSTEM] Next chapter unlocked: ${t}.`,
+    exLoaded: "[SYSTEM] Example loaded into the editor. Press Cast to run it. (Reset brings back the quest starter.)",
+    resetMsg: "[SYSTEM] Spellbook page restored to the quest starter.",
+    notReady: "[SYSTEM] Python is still awakening, wait a moment.",
+    loadFail: "[SYSTEM] The Python engine could not be summoned. Check your connection and reload the page.",
+    slowMsg: "[SYSTEM] Python is taking a long time to awaken. If nothing happens, reload the page.",
+    fbOk: (xp) => `✓ Quest complete! +${xp} XP`,
+    fbAgain: "✓ Correct! You already cleared this quest.",
+    fbFail: "Almost there! The quest is not complete yet.",
+    fbErr: "✗ Your spell has an error",
+    fbErrMsg: "Read the red message in the terminal, fix it, and cast again.",
+    fbNext: "Next chapter →",
+    crashed: "Your spell crashed during the trial:",
+    loop: "Infinite loop detected! This while loop ran more than 200,000 times. Does its condition ever become False?",
+    input: "input() is sealed in this dungeon. Put the value in a variable instead, like name = 'Lydson'.",
+    tipEmptyValue: "A variable needs a value after the = sign. Text goes in quotes (\"Lydson\"), numbers don't (100).",
+    tips: {
+      NameError: "The System doesn't know this name. Check the spelling, or create it before you use it. Text needs quotes!",
+      SyntaxError: "The incantation is malformed. Look for a missing : or quote or bracket.",
+      IndentationError: "Your spell's indentation is crooked. Code inside if/for/while/def needs 4 spaces.",
+      TypeError: "You mixed things that don't fit together (like text + number), or called a function with the wrong arguments.",
+      IndexError: "You reached for a slot in the list that doesn't exist. Lists start at 0!",
+      KeyError: "That key isn't in the dictionary. Check the exact spelling.",
+      ZeroDivisionError: "Dividing by zero tears a hole in reality. Please don't.",
+      AttributeError: "This object doesn't have that method or attribute.",
+      ValueError: "The type is right but the value is wrong.",
+      RecursionError: "A function kept calling itself forever. Add a stopping condition."
+    }
+  },
+  es: {
+    subtitle: "Renaciste en un mundo donde cada hechizo es Python de verdad.",
+    hero: "Héroe",
+    loading: "● Invocando a Python…", ready: "● Python despertó", failed: "● Python no pudo cargar", slow: "● Python sigue cargando…",
+    toDark: "☾ Modo oscuro", toLight: "☀ Modo claro",
+    benchTitle: "Ventana del Sistema · Grimorio",
+    cast: "▶ Lanzar hechizo", reset: "Reiniciar", clear: "Limpiar registro", kbd: "Ctrl/⌘ + Enter para lanzar",
+    replPh: "Prueba una línea rápida, ej. 2 + 2",
+    footer: "Python 3 real funcionando en tu navegador · el progreso se guarda en este dispositivo",
+    chapterOf: (n, t) => `Capítulo ${n} de ${t}`,
+    questReward: "Misión · Recompensa", cleared: "completada ✓",
+    questSys: (t) => `[SISTEMA] ❖ Nueva misión recibida: <b>${t}</b>. ¿Aceptar? ▸ Sí &nbsp;▸ Sí`,
+    yourQuest: "Tu misión",
+    questHow: "Escribe tu código en el Grimorio y pulsa <strong>Lanzar hechizo</strong>. El Sistema revisa tu misión cada vez que lanzas y te dice qué falta.",
+    hintBtn: "Pedir una pista a Def-sensei",
+    guild: "Notas de inglés del gremio",
+    prev: "← Capítulo anterior", next: "Siguiente capítulo →",
+    load: "Cargar ▸", loadTitle: "Copiar este ejemplo al editor",
+    line: "línea",
+    bound: "[SISTEMA] Intérprete de Python 3 vinculado a tu alma. Escribe un hechizo y pulsa Lanzar.",
+    casting: "── Lanzando spell.py ──",
+    notYet: "[SISTEMA] La misión aún no está completa:",
+    complete: (t) => `[SISTEMA] ✦ MISIÓN COMPLETADA: ${t} ✦`,
+    again: "[SISTEMA] Misión ya completada. Sin XP extra, pero la práctica cuenta.",
+    allDone: "[SISTEMA] Todos los capítulos completados. Título obtenido: 《Sabio Pythónico》",
+    nextUnlocked: (t) => `[SISTEMA] Siguiente capítulo desbloqueado: ${t}.`,
+    exLoaded: "[SISTEMA] Ejemplo cargado en el editor. Pulsa Lanzar para ejecutarlo. (Reiniciar trae de vuelta el código de la misión.)",
+    resetMsg: "[SISTEMA] Página del grimorio restaurada al código inicial de la misión.",
+    notReady: "[SISTEMA] Python todavía está despertando, espera un momento.",
+    loadFail: "[SISTEMA] No se pudo invocar el motor de Python. Revisa tu conexión y recarga la página.",
+    slowMsg: "[SISTEMA] Python está tardando mucho en despertar. Si no pasa nada, recarga la página.",
+    fbOk: (xp) => `✓ ¡Misión completada! +${xp} XP`,
+    fbAgain: "✓ ¡Correcto! Ya habías completado esta misión.",
+    fbFail: "¡Casi! La misión todavía no está completa.",
+    fbErr: "✗ Tu hechizo tiene un error",
+    fbErrMsg: "Lee el mensaje rojo en la terminal, corrígelo y lanza de nuevo.",
+    fbNext: "Siguiente capítulo →",
+    crashed: "Tu hechizo falló durante la prueba:",
+    loop: "¡Bucle infinito detectado! Este while se repitió más de 200.000 veces. ¿Su condición llega a ser False alguna vez?",
+    input: "input() está sellado en esta mazmorra. Pon el valor en una variable, como name = 'Lydson'.",
+    tipEmptyValue: "Una variable necesita un valor después del signo =. El texto va entre comillas (\"Lydson\"), los números no (100).",
+    tips: {
+      NameError: "El Sistema no conoce este nombre. Revisa cómo lo escribiste o créalo antes de usarlo. ¡El texto necesita comillas!",
+      SyntaxError: "El conjuro está mal escrito. Busca un : o una comilla o un paréntesis que falte.",
+      IndentationError: "La sangría de tu hechizo está torcida. El código dentro de if/for/while/def necesita 4 espacios.",
+      TypeError: "Mezclaste cosas que no encajan (como texto + número), o llamaste a una función con argumentos incorrectos.",
+      IndexError: "Buscaste una posición de la lista que no existe. ¡Las listas empiezan en 0!",
+      KeyError: "Esa clave no está en el diccionario. Revisa cómo está escrita.",
+      ZeroDivisionError: "Dividir entre cero abre un agujero en la realidad. Por favor, no lo hagas.",
+      AttributeError: "Este objeto no tiene ese método o atributo.",
+      ValueError: "El tipo es correcto pero el valor no.",
+      RecursionError: "Una función se llamó a sí misma para siempre. Agrega una condición para parar."
+    }
+  },
+  pt: {
+    subtitle: "Renascido em um mundo onde todo feitiço é Python de verdade.",
+    hero: "Herói",
+    loading: "● Invocando o Python…", ready: "● Python despertou", failed: "● O Python não carregou", slow: "● O Python ainda está carregando…",
+    toDark: "☾ Modo escuro", toLight: "☀ Modo claro",
+    benchTitle: "Janela do Sistema · Grimório",
+    cast: "▶ Lançar feitiço", reset: "Reiniciar", clear: "Limpar registro", kbd: "Ctrl/⌘ + Enter para lançar",
+    replPh: "Teste uma linha rápida, ex. 2 + 2",
+    footer: "Python 3 de verdade rodando no seu navegador · o progresso fica salvo neste dispositivo",
+    chapterOf: (n, t) => `Capítulo ${n} de ${t}`,
+    questReward: "Missão · Recompensa", cleared: "concluída ✓",
+    questSys: (t) => `[SISTEMA] ❖ Nova missão recebida: <b>${t}</b>. Aceitar? ▸ Sim &nbsp;▸ Sim`,
+    yourQuest: "Sua missão",
+    questHow: "Escreva seu código no Grimório e clique em <strong>Lançar feitiço</strong>. O Sistema confere sua missão toda vez que você lança e diz o que está faltando.",
+    hintBtn: "Pedir uma dica ao Def-sensei",
+    guild: "Notas de inglês da guilda",
+    prev: "← Capítulo anterior", next: "Próximo capítulo →",
+    load: "Carregar ▸", loadTitle: "Copiar este exemplo para o editor",
+    line: "linha",
+    bound: "[SISTEMA] Interpretador Python 3 ligado à sua alma. Escreva um feitiço e clique em Lançar.",
+    casting: "── Lançando spell.py ──",
+    notYet: "[SISTEMA] A missão ainda não foi concluída:",
+    complete: (t) => `[SISTEMA] ✦ MISSÃO CONCLUÍDA: ${t} ✦`,
+    again: "[SISTEMA] Missão já concluída. Sem XP extra, mas o treino conta.",
+    allDone: "[SISTEMA] Todos os capítulos concluídos. Título obtido: 《Sábio Pythônico》",
+    nextUnlocked: (t) => `[SISTEMA] Próximo capítulo desbloqueado: ${t}.`,
+    exLoaded: "[SISTEMA] Exemplo carregado no editor. Clique em Lançar para rodar. (Reiniciar traz de volta o código da missão.)",
+    resetMsg: "[SISTEMA] Página do grimório restaurada para o código inicial da missão.",
+    notReady: "[SISTEMA] O Python ainda está despertando, espere um momento.",
+    loadFail: "[SISTEMA] Não foi possível invocar o motor do Python. Verifique sua conexão e recarregue a página.",
+    slowMsg: "[SISTEMA] O Python está demorando para despertar. Se nada acontecer, recarregue a página.",
+    fbOk: (xp) => `✓ Missão concluída! +${xp} XP`,
+    fbAgain: "✓ Correto! Você já tinha concluído esta missão.",
+    fbFail: "Quase lá! A missão ainda não foi concluída.",
+    fbErr: "✗ Seu feitiço tem um erro",
+    fbErrMsg: "Leia a mensagem vermelha no terminal, corrija e lance de novo.",
+    fbNext: "Próximo capítulo →",
+    crashed: "Seu feitiço quebrou durante o teste:",
+    loop: "Loop infinito detectado! Este while repetiu mais de 200.000 vezes. A condição dele algum dia vira False?",
+    input: "input() está selado nesta masmorra. Coloque o valor em uma variável, como name = 'Lydson'.",
+    tipEmptyValue: "Uma variável precisa de um valor depois do sinal =. Texto vai entre aspas (\"Lydson\"), números não (100).",
+    tips: {
+      NameError: "O Sistema não conhece esse nome. Confira a escrita ou crie a variável antes de usar. Texto precisa de aspas!",
+      SyntaxError: "O encantamento está mal escrito. Procure um : ou uma aspa ou um parêntese faltando.",
+      IndentationError: "A indentação do seu feitiço está torta. O código dentro de if/for/while/def precisa de 4 espaços.",
+      TypeError: "Você misturou coisas que não combinam (como texto + número) ou chamou uma função com os argumentos errados.",
+      IndexError: "Você tentou pegar uma posição da lista que não existe. Listas começam no 0!",
+      KeyError: "Essa chave não está no dicionário. Confira a escrita exata.",
+      ZeroDivisionError: "Dividir por zero abre um buraco na realidade. Por favor, não faça isso.",
+      AttributeError: "Este objeto não tem esse método ou atributo.",
+      ValueError: "O tipo está certo, mas o valor está errado.",
+      RecursionError: "Uma função ficou chamando a si mesma para sempre. Adicione uma condição de parada."
+    }
+  }
+};
+
+// Language-independent part of every chapter: example code, quest checks and XP.
+// Quest checks run in Python after the hero's code. OUT = printed text, SRC = source code,
+// T(en, es, pt) picks the message in the current language.
+const CODE = {
+  print: {
+    xp: 50,
+    examples: {
+      ex1: `print("Hello, other world!")
+print("My name is Lydson.")
+
+# This is a comment. Python ignores it.
+print("Level", 1)
+print("HP:", 100, "MP:", 50)`,
+      ex2: `print("2 + 2")    # shows the text: 2 + 2
+print(2 + 2)      # calculates: 4`
+    },
+    test: `assert "Hello, System!" in OUT, T("I didn't see 'Hello, System!' in the output. Check the comma, the capital S and the '!'.", "No vi 'Hello, System!' en la salida. Revisa la coma, la S mayúscula y el '!'.", "Não vi 'Hello, System!' na saída. Confira a vírgula, o S maiúsculo e o '!'.")
+assert "I am ready." in OUT, T("I didn't see 'I am ready.' in the output. Don't forget the period (.) at the end!", "No vi 'I am ready.' en la salida. ¡No olvides el punto (.) al final!", "Não vi 'I am ready.' na saída. Não esqueça o ponto final (.)!")
+assert "42" in OUT, T("I didn't see the result of 6 * 7 in the output.", "No vi el resultado de 6 * 7 en la salida.", "Não vi o resultado de 6 * 7 na saída.")
+assert "*" in SRC and "42" not in SRC, T("Let Python do the math: write print(6 * 7), not 42.", "Deja que Python calcule: escribe print(6 * 7), no 42.", "Deixe o Python calcular: escreva print(6 * 7), não 42.")`
+  },
+  vars: {
+    xp: 75,
+    examples: {
+      ex1: `name = "Lydson"
+level = 1
+gold = 10.5
+is_hero = True
+
+print(name, level, gold, is_hero)
+print(type(name))
+print(type(level))`,
+      ex2: `name = "Lydson"
+gold = 10
+gold = gold + 5       # the box now holds 15
+
+print(f"{name} has {gold} gold.")`
+    },
+    test: `assert isinstance(hero_name, str) and hero_name.strip(), T("hero_name is empty. Put your name inside the quotes, like 'Lydson'.", "hero_name está vacío. Pon tu nombre entre las comillas, como 'Lydson'.", "hero_name está vazio. Coloque seu nome entre as aspas, como 'Lydson'.")
+assert hero_class == "mage", T(f"hero_class should be 'mage', but it is {hero_class!r}.", f"hero_class debería ser 'mage', pero es {hero_class!r}.", f"hero_class deveria ser 'mage', mas é {hero_class!r}.")
+assert hp == 100, T(f"hp should be 100, but it is {hp!r}.", f"hp debería ser 100, pero es {hp!r}.", f"hp deveria ser 100, mas é {hp!r}.")
+want = f"{hero_name} the mage has 100 HP."
+assert want in OUT, T(f"I expected to see '{want}' in the output.", f"Esperaba ver '{want}' en la salida.", f"Eu esperava ver '{want}' na saída.")
+assert 'f"' in SRC or "f'" in SRC, T("Use an f-string: put the letter f before the quotes.", "Usa un f-string: pon la letra f antes de las comillas.", "Use uma f-string: coloque a letra f antes das aspas.")`
+  },
+  math: {
+    xp: 75,
+    examples: {
+      ex1: `print(10 + 3)    # 13
+print(10 - 3)    # 7
+print(10 * 3)    # 30
+print(10 / 3)    # 3.333...
+print(10 // 3)   # 3  (whole division)
+print(10 % 3)    # 1  (the remainder)
+print(2 ** 3)    # 8  (power)`,
+      ex2: `price = "5"
+print(price + price)             # 55  (text glued together!)
+print(int(price) + int(price))   # 10  (real math)
+
+age = 25
+print("Age: " + str(age))`
+    },
+    test: `assert cost == 21, T(f"cost should be 21 (7 x 3), but it is {cost!r}.", f"cost debería ser 21 (7 x 3), pero es {cost!r}.", f"cost deveria ser 21 (7 x 3), mas é {cost!r}.")
+assert "price * nights" in SRC or "nights * price" in SRC, T("Calculate cost with the variables: price * nights.", "Calcula cost con las variables: price * nights.", "Calcule cost com as variáveis: price * nights.")
+assert change == 29, T(f"change should be 29 (50 - 21), but it is {change!r}.", f"change debería ser 29 (50 - 21), pero es {change!r}.", f"change deveria ser 29 (50 - 21), mas é {change!r}.")
+assert max_nights == 7, T(f"max_nights should be 7 (50 // 7), but it is {max_nights!r}.", f"max_nights debería ser 7 (50 // 7), pero es {max_nights!r}.", f"max_nights deveria ser 7 (50 // 7), mas é {max_nights!r}.")
+assert "//" in SRC, T("Use // to calculate max_nights.", "Usa // para calcular max_nights.", "Use // para calcular max_nights.")
+assert "You pay 21 gold and keep 29." in OUT, T("I didn't see 'You pay 21 gold and keep 29.' in the output.", "No vi 'You pay 21 gold and keep 29.' en la salida.", "Não vi 'You pay 21 gold and keep 29.' na saída.")`
+  },
+  if: {
+    xp: 100,
+    examples: {
+      ex1: `hp = 45
+
+if hp > 70:
+    print("You feel strong. Attack!")
+elif hp > 30:
+    print("You are hurt. Defend.")
+else:
+    print("RUN!")`,
+      ex2: `gold = 30
+has_sword = True
+
+if gold >= 20 and has_sword:
+    print("You can buy armor and still fight.")
+
+if gold < 10 or not has_sword:
+    print("You are not ready.")`
+    },
+    test: `assert "elif" in SRC and "else" in SRC, T("Use if, elif and else for this quest.", "Usa if, elif y else en esta misión.", "Use if, elif e else nesta missão.")
+lines = SRC.splitlines()
+pos = [i for i, l in enumerate(lines) if l.replace(" ", "").startswith("hp=")]
+assert pos, T("Keep the line hp = 35 at the top.", "Mantén la línea hp = 35 al principio.", "Mantenha a linha hp = 35 no começo.")
+for val, want in [(35, "defend"), (80, "attack"), (71, "attack"), (70, "defend"), (31, "defend"), (30, "run"), (5, "run")]:
+    lines[pos[0]] = f"hp = {val}"
+    ns2 = {"__g": __g, "print": lambda *a, **k: None}
+    exec(chr(10).join(lines), ns2)
+    got = ns2.get("action")
+    assert got == want, T(f"The System tested hp = {val}: action should be '{want}', but it is {got!r}.", f"El Sistema probó hp = {val}: action debería ser '{want}', pero es {got!r}.", f"O Sistema testou hp = {val}: action deveria ser '{want}', mas é {got!r}.")`
+  },
+  for: {
+    xp: 100,
+    examples: {
+      ex1: `goblins = ["Gob1", "Gob2", "Gob3", "Gob4", "Gob5", "Gob6", "Gob7"]
+
+for goblin in goblins:
+    print(f"You slash {goblin}!")
+
+print("The horde is defeated.")`,
+      ex2: `for i in range(3):
+    print("Training swing number", i)
+
+for day in range(1, 4):
+    print(f"Day {day} in the new world")`
+    },
+    test: `assert "for " in SRC, T("The System requires a for loop for this quest.", "El Sistema exige un bucle for en esta misión.", "O Sistema exige um loop for nesta missão.")
+for g in ["Gob", "Grub", "Snot"]:
+    assert f"You defeat {g}!" in OUT, T(f"I didn't see 'You defeat {g}!' in the output. Check the exact text.", f"No vi 'You defeat {g}!' en la salida. Revisa el texto exacto.", f"Não vi 'You defeat {g}!' na saída. Confira o texto exato.")
+assert defeated == 3, T(f"defeated should be 3, but it is {defeated}. Add 1 inside the loop.", f"defeated debería ser 3, pero es {defeated}. Suma 1 dentro del bucle.", f"defeated deveria ser 3, mas é {defeated}. Some 1 dentro do loop.")`
+  },
+  list: {
+    xp: 125,
+    examples: {
+      ex1: `bag = ["sword", "potion", "bread"]
+
+bag.append("map")
+bag.remove("bread")
+print(bag)
+print("Items:", len(bag))
+print("First item:", bag[0])
+print("Have potion?", "potion" in bag)
+
+last = bag.pop()
+print("Took out:", last)`,
+      ex2: `numbers = [10, 20, 30, 40, 50]
+print(numbers[1:3])    # [20, 30]  (stops before index 3)
+print(numbers[:2])     # [10, 20]
+
+doubled = [n * 2 for n in numbers]
+print(doubled)`
+    },
+    test: `assert inventory == ["sword", "map"], T(f"inventory should be ['sword', 'map'], but it is {inventory}.", f"inventory debería ser ['sword', 'map'], pero es {inventory}.", f"inventory deveria ser ['sword', 'map'], mas é {inventory}.")
+assert "item_count" in dir(), T("Create a variable called item_count.", "Crea una variable llamada item_count.", "Crie uma variável chamada item_count.")
+assert item_count == 2, T(f"item_count should be 2, but it is {item_count}.", f"item_count debería ser 2, pero es {item_count}.", f"item_count deveria ser 2, mas é {item_count}.")
+assert "len(" in SRC, T("Use len() to count the items.", "Usa len() para contar los objetos.", "Use len() para contar os itens.")`
+  },
+  while: {
+    xp: 125,
+    examples: {
+      ex1: `torches = 3
+room = 1
+
+while torches > 0:
+    print(f"Room {room}: you light a torch.")
+    torches -= 1
+    room += 1
+
+print("Out of torches. It's dark now...")`,
+      ex2: `room = 0
+while True:
+    room += 1
+    if room == 2:
+        print("Room 2 is a trap. Skipping!")
+        continue
+    if room == 5:
+        print("Found the exit!")
+        break
+    print("Exploring room", room)`
+    },
+    test: `assert "while" in SRC, T("This quest needs a while loop.", "Esta misión necesita un bucle while.", "Esta missão precisa de um loop while.")
+assert hp <= 0, T(f"The boss still has {hp} HP!", f"¡El jefe todavía tiene {hp} HP!", f"O chefe ainda tem {hp} HP!")
+assert turns == 4, T(f"turns should be 4, but it is {turns}.", f"turns debería ser 4, pero es {turns}.", f"turns deveria ser 4, mas é {turns}.")
+assert hp == -20, T(f"hp should end at -20 (100 - 30 x 4), but it is {hp}.", f"hp debería terminar en -20 (100 - 30 x 4), pero es {hp}.", f"hp deveria terminar em -20 (100 - 30 x 4), mas é {hp}.")`
+  },
+  def: {
+    xp: 150,
+    examples: {
+      ex1: `def fireball(target, power):
+    damage = power * 2
+    print(f"Fireball hits {target} for {damage} damage!")
+    return damage
+
+fireball("Slime", 10)
+total = fireball("Dragon", 50)
+print("Damage stored:", total)`,
+      ex2: `def greet(name, title="Adventurer"):
+    return f"Welcome, {title} {name}!"
+
+print(greet("Lydson"))
+print(greet("Lydson", "Hero"))`
+    },
+    test: `assert "heal" in dir() and callable(heal), T("I can't find a function called heal.", "No encuentro una función llamada heal.", "Não encontrei uma função chamada heal.")
+r = heal(10)
+assert r is not None, T("heal(10) returned None. Did you forget 'return'?", "heal(10) devolvió None. ¿Olvidaste el 'return'?", "heal(10) retornou None. Você esqueceu o 'return'?")
+assert r == 30, T(f"heal(10) should return 30, but returned {r}.", f"heal(10) debería devolver 30, pero devolvió {r}.", f"heal(10) deveria retornar 30, mas retornou {r}.")
+r2 = heal(5, 50)
+assert r2 == 55, T(f"heal(5, 50) should return 55, but returned {r2}.", f"heal(5, 50) debería devolver 55, pero devolvió {r2}.", f"heal(5, 50) deveria retornar 55, mas retornou {r2}.")
+assert heal(0, 1) == 1, T("heal(0, 1) should return 1.", "heal(0, 1) debería devolver 1.", "heal(0, 1) deveria retornar 1.")`
+  },
+  match: {
+    xp: 150,
+    examples: {
+      ex1: `hero_class = "mage"
+
+match hero_class:
+    case "warrior" | "knight":
+        print("Take the sword.")
+    case "mage":
+        print("Take the staff.")
+    case "archer":
+        print("Take the bow.")
+    case _:
+        print("...Who even are you?")`,
+      ex2: `hero_class = "archer"
+
+if hero_class == "warrior" or hero_class == "knight":
+    print("Take the sword.")
+elif hero_class == "mage":
+    print("Take the staff.")
+elif hero_class == "archer":
+    print("Take the bow.")
+else:
+    print("...Who even are you?")`
+    },
+    test: `assert "match" in SRC and "case" in SRC, T("The knight insists: use match / case for this one.", "El caballero insiste: usa match / case en esta.", "O cavaleiro insiste: use match / case nesta.")
+cases = {"warrior": "sword", "knight": "sword", "mage": "staff", "archer": "bow", "bard": "fists", "chef": "fists"}
+for job, want in cases.items():
+    got = weapon_for(job)
+    assert got == want, T(f"weapon_for('{job}') should return '{want}', but returned {got!r}.", f"weapon_for('{job}') debería devolver '{want}', pero devolvió {got!r}.", f"weapon_for('{job}') deveria retornar '{want}', mas retornou {got!r}.")`
+  },
+  dict: {
+    xp: 150,
+    examples: {
+      ex1: `status = {
+    "name": "Lydson",
+    "level": 1,
+    "hp": 100,
+}
+
+print(status["name"])
+status["hp"] = status["hp"] - 10
+status["title"] = "Otherworlder"
+print(status)
+print("MP:", status.get("mp", 0))`,
+      ex2: `status = {"name": "Lydson", "level": 3, "hp": 120}
+
+for key, value in status.items():
+    print(f"{key}: {value}")`
+    },
+    test: `assert isinstance(status, dict), T("status must be a dictionary: { }.", "status debe ser un diccionario: { }.", "status precisa ser um dicionário: { }.")
+assert status.get("name") == "Lydson", T("status['name'] should be 'Lydson'.", "status['name'] debería ser 'Lydson'.", "status['name'] deveria ser 'Lydson'.")
+assert status.get("hp") == 100, T("status['hp'] should be 100.", "status['hp'] debería ser 100.", "status['hp'] deveria ser 100.")
+lvl = status.get("level")
+assert lvl == 2, T(f"status['level'] should be 2 after leveling up, but it is {lvl}.", f"status['level'] debería ser 2 después de subir de nivel, pero es {lvl}.", f"status['level'] deveria ser 2 depois de subir de nível, mas é {lvl}.")
+assert ".items()" in SRC, T("Use .items() to loop over the dictionary.", "Usa .items() para recorrer el diccionario.", "Use .items() para percorrer o dicionário.")
+for line in ["name: Lydson", "level: 2", "hp: 100"]:
+    assert line in OUT, T(f"I didn't see '{line}' in the output.", f"No vi '{line}' en la salida.", f"Não vi '{line}' na saída.")`
+  },
+  boss: {
+    xp: 300,
+    examples: {
+      ex1: `attacks = ["slash", "fireball", "kick"]
+
+for turn, attack in enumerate(attacks, start=1):
+    print(f"Turn {turn}: {attack}")`,
+      ex2: `def first_big(numbers):
+    for n in numbers:
+        if n > 10:
+            return n      # the function ends here
+    return None           # nothing was big
+
+print(first_big([3, 7, 15, 40]))   # 15
+print(first_big([1, 2]))           # None`
+    },
+    test: `assert callable(fight), T("I can't find the fight function.", "No encuentro la función fight.", "Não encontrei a função fight.")
+checks = [((50, [20, 20, 20]), 3), ((100, [10, 10]), -1), ((10, [50, 1]), 1), ((30, [10, 10, 10, 10]), 3), ((5, []), -1)]
+for args, want in checks:
+    got = fight(*args)
+    assert got == want, T(f"fight{args} should return {want}, but returned {got!r}.", f"fight{args} debería devolver {want}, pero devolvió {got!r}.", f"fight{args} deveria retornar {want}, mas retornou {got!r}.")`
+  }
+};
+
+const TEXT = {};
+TEXT.en = {
+  print: {
+    tab: "print()", arc: "The Summoning", title: "Hello, Other World",
+    story: `
+<p>You were crossing the street, looking at your phone, when you heard a very loud horn. Then everything went white.</p>
+<p>You are floating in an endless white void. A goddess sits on a cloud, eating a sandwich. She looks surprised to see you.</p>
+<p><span class="dialogue">"Oh! Another one. Sorry about the truck. Let me give you a skill before I send you to my world."</span></p>
+<div class="sysmsg">[SYSTEM] Welcome, <b>Lydson</b>. You have been granted the unique skill: <b>PYTHON</b>.<br>[SYSTEM] First technique unlocked: <b>print()</b> — make the System say something.</div>
+<p>Every spell in this world is written in Python. The simplest spell is <code class="i">print()</code>. Whatever you put inside the parentheses appears in the terminal.</p>
+@@ex1@@
+<ul>
+<li>Text must be inside quotes: <code class="i">"like this"</code> or <code class="i">'like this'</code>. Text in Python is called a <strong>string</strong>.</li>
+<li>Numbers don't need quotes.</li>
+<li>Commas let you print several things at once. Python adds a space between them.</li>
+<li>A line that starts with <code class="i">#</code> is a <strong>comment</strong>. Python ignores it. It's a note for humans.</li>
+</ul>
+<h3>Quotes change everything</h3>
+@@ex2@@
+<p>With quotes, Python shows the text exactly as you wrote it. Without quotes, Python <em>calculates</em> it first.</p>`,
+    quest: `<ol>
+<li>Print <code class="i">Hello, System!</code></li>
+<li>Print <code class="i">I am ready.</code> (with the period!)</li>
+<li>Print the result of <code class="i">6 * 7</code>. Let Python do the math: don't type 42 yourself!</li>
+</ol>`,
+    hint: `Three lines: print("Hello, System!") then print("I am ready.") then print(6 * 7) (no quotes on the last one).`,
+    starter: `# Your first spell. Write three print() lines below.
+
+`,
+    words: [["void", "a completely empty space"], ["to be summoned", "to be called to come somewhere (often by magic)"], ["horn", "the loud sound a car or truck makes"]]
+  },
+  vars: {
+    tab: "variables", arc: "Character Creation", title: "Name Your Hero",
+    story: `
+<p>The goddess finishes her sandwich and opens a giant glowing menu.</p>
+<p><span class="dialogue">"Character creation time! The System remembers things using <strong>variables</strong>. Think of a variable as a box with a label on it."</span></p>
+@@ex1@@
+<ul>
+<li><code class="i">name = "Lydson"</code> means "put the text Lydson in a box called name". The <code class="i">=</code> sign <strong>stores</strong> a value; it doesn't mean "equals" like in math.</li>
+<li>There are four basic types of values: <strong>str</strong> (text), <strong>int</strong> (whole number), <strong>float</strong> (decimal number) and <strong>bool</strong> (True or False).</li>
+<li><code class="i">type(x)</code> tells you the type of a value.</li>
+<li>Variable names use lowercase and underscores: <code class="i">hero_name</code>, not <code class="i">Hero Name</code>.</li>
+</ul>
+<h3>Changing a variable and f-strings</h3>
+<p>A variable can change. And an <strong>f-string</strong> (a string with <code class="i">f</code> before the quotes) lets you put variables inside text using <code class="i">{ }</code>.</p>
+@@ex2@@`,
+    quest: `<ol>
+<li>Fill in <code class="i">hero_name</code> with your name (inside the quotes).</li>
+<li>Set <code class="i">hero_class</code> to <code class="i">"mage"</code> and <code class="i">hp</code> to <code class="i">100</code>.</li>
+<li>Use an f-string to print: <code class="i">Lydson the mage has 100 HP.</code> (with your hero_name).</li>
+</ol>`,
+    hint: `print(f"{hero_name} the {hero_class} has {hp} HP.")`,
+    starter: `# Create your character
+hero_name = ""     # your name inside the quotes
+hero_class = ""    # your class: mage
+hp = 0             # change to 100
+
+# Print your character card with an f-string
+`,
+    words: [["to store", "to keep something to use later"], ["label", "a small tag with a name on it"], ["glowing", "giving off a soft light"]]
+  },
+  math: {
+    tab: "math & types", arc: "The First Village", title: "The Innkeeper's Bill",
+    story: `
+<p>You land face-first in a small village. You have 50 gold coins and no idea how money works here. The innkeeper smiles a little too much.</p>
+<div class="sysmsg">[SYSTEM] Skill unlocked: <b>ARITHMETIC</b> — never get cheated again.</div>
+@@ex1@@
+<ul>
+<li><code class="i">/</code> always gives a decimal (float). <code class="i">//</code> gives a whole number and throws away the rest.</li>
+<li><code class="i">%</code> (modulo) gives the <strong>remainder</strong>. <code class="i">10 % 3</code> is 1 because 10 = 3 + 3 + 3 + <strong>1</strong>.</li>
+<li><code class="i">**</code> is power: <code class="i">2 ** 3</code> = 2 × 2 × 2.</li>
+<li>Shortcuts: <code class="i">gold -= 5</code> is the same as <code class="i">gold = gold - 5</code>. Same for <code class="i">+=</code> and <code class="i">*=</code>.</li>
+</ul>
+<h3>The trap of text numbers</h3>
+<p>The innkeeper writes your bill on paper: <code class="i">"5"</code>. That's a string, not a number!</p>
+@@ex2@@
+<p><code class="i">int()</code> turns text into a whole number, <code class="i">float()</code> into a decimal, and <code class="i">str()</code> turns a number into text.</p>`,
+    quest: `<ol>
+<li>One night at the inn costs <code class="i">price = 7</code> gold. You stay <code class="i">nights = 3</code>. You have <code class="i">gold = 50</code>.</li>
+<li>Create <code class="i">cost</code> (price × nights) and <code class="i">change</code> (the gold you keep). Use the variables, not the numbers.</li>
+<li>Create <code class="i">max_nights</code>: how many full nights 50 gold can pay for. Use <code class="i">//</code>.</li>
+<li>Print: <code class="i">You pay 21 gold and keep 29.</code> using an f-string.</li>
+</ol>`,
+    hint: `cost = price * nights, change = gold - cost, max_nights = gold // price, then print(f"You pay {cost} gold and keep {change}.")`,
+    starter: `price = 7
+nights = 3
+gold = 50
+
+# Calculate cost, change and max_nights
+
+
+# Print the bill
+`,
+    words: [["bill", "a paper that shows how much you must pay"], ["change", "the money you get back after paying"], ["to cheat (someone)", "to trick someone to get something unfairly"]]
+  },
+  if: {
+    tab: "if / elif / else", arc: "The Crossroads", title: "The Fork in the Road",
+    story: `
+<p>You leave the village and reach a fork in the road. A wooden sign says: <em>"Left: monsters. Right: more monsters."</em> Great.</p>
+<p>You already know this magic, but the System makes you review it anyway.</p>
+<div class="sysmsg">[SYSTEM] Skill review: <b>IF / ELIF / ELSE</b> — make decisions.</div>
+@@ex1@@
+<ul>
+<li>Python checks from top to bottom and runs only the <strong>first</strong> block that is True.</li>
+<li>Comparisons: <code class="i">==</code> (equal), <code class="i">!=</code> (not equal), <code class="i">&gt;</code>, <code class="i">&lt;</code>, <code class="i">&gt;=</code>, <code class="i">&lt;=</code>.</li>
+<li>Don't mix them up: <code class="i">=</code> stores a value, <code class="i">==</code> compares two values.</li>
+</ul>
+<h3>and, or, not</h3>
+@@ex2@@
+<ul>
+<li><code class="i">and</code>: both must be True. <code class="i">or</code>: at least one must be True. <code class="i">not</code>: flips True and False.</li>
+</ul>`,
+    quest: `<ol>
+<li>Keep <code class="i">hp = 35</code> on the first line.</li>
+<li>Create a variable <code class="i">action</code>: <code class="i">"attack"</code> if hp is more than 70, <code class="i">"defend"</code> if hp is more than 30, otherwise <code class="i">"run"</code>.</li>
+<li>Print the action. The System will test your code with different hp values!</li>
+</ol>`,
+    hint: `if hp > 70: action = "attack"  /  elif hp > 30: action = "defend"  /  else: action = "run". Each action line goes indented under its condition.`,
+    starter: `hp = 35
+
+# Decide the action with if / elif / else
+
+
+print("Action:", action)
+`,
+    words: [["fork in the road", "a place where one road splits into two"], ["to review", "to study something again"], ["to flip", "to turn something to the opposite side"]]
+  },
+  for: {
+    tab: "for loops", arc: "The First Battle", title: "The Goblin Horde",
+    story: `
+<p>You take the left path into a meadow that smells like rain and bad decisions. Suddenly, the blue window flashes red.</p>
+<div class="sysmsg">[SYSTEM] Warning: hostile monsters approaching.</div>
+<p>A goblin jumps out of the bushes. Then another. Then <em>five more</em>.</p>
+<p><span class="dialogue">"Am I supposed to write <code class="i">attack()</code> seven times?!"</span> you shout.</p>
+<div class="sysmsg">[SYSTEM] New skill unlocked: <b>FOR LOOP</b> — repeat a spell once for every item in a group.</div>
+<p>The goblins are in a <strong>list</strong>: values between <code class="i">[ ]</code>, separated by commas.</p>
+@@ex1@@
+<p>The loop takes each goblin from the list, one at a time, puts it in the variable <code class="i">goblin</code>, and runs the indented code. Seven goblins, one spell.</p>
+<h3>The range() technique</h3>
+<p>When you just need to repeat something a number of times, use <code class="i">range()</code>.</p>
+@@ex2@@
+<ul>
+<li><code class="i">range(3)</code> gives <code class="i">0, 1, 2</code>. It <strong>stops before</strong> the number. Every isekai hero forgets this at least once.</li>
+<li><code class="i">range(1, 4)</code> gives <code class="i">1, 2, 3</code> (start, stop).</li>
+<li>The code that repeats must be <strong>indented</strong> (4 spaces).</li>
+</ul>`,
+    quest: `<ol>
+<li>The list <code class="i">goblins</code> and the counter <code class="i">defeated = 0</code> are ready.</li>
+<li>Use a <code class="i">for</code> loop to print <code class="i">You defeat Gob!</code> (and the same for the others).</li>
+<li>Inside the loop, add 1 to <code class="i">defeated</code> each time.</li>
+</ol>`,
+    hint: `for goblin in goblins:  then, indented:  print(f"You defeat {goblin}!")  and  defeated += 1`,
+    starter: `goblins = ["Gob", "Grub", "Snot"]
+defeated = 0
+
+# Write your for loop here
+
+print("Goblins defeated:", defeated)
+`,
+    words: [["horde", "a very large group (usually of enemies)"], ["to defeat", "to win against someone"], ["meadow", "a field of grass and flowers"]]
+  },
+  list: {
+    tab: "lists", arc: "The Merchant", title: "The Bottomless Bag",
+    story: `
+<p>A suspicious merchant sells you a magic bag. <span class="dialogue">"It holds anything, in order, forever! Only 3 gold!"</span> It is a Python <strong>list</strong>.</p>
+@@ex1@@
+<ul>
+<li><code class="i">.append(x)</code> puts an item at the end.</li>
+<li><code class="i">.remove(x)</code> takes out the first item equal to x.</li>
+<li><code class="i">.pop()</code> takes out the last item and gives it to you.</li>
+<li><code class="i">len(bag)</code> counts the items. <code class="i">x in bag</code> checks if it's there.</li>
+<li><code class="i">bag[0]</code> is the first item. <code class="i">bag[-1]</code> is the last.</li>
+</ul>
+<h3>Slicing and the list spell</h3>
+@@ex2@@
+<p>The last line is a <strong>list comprehension</strong>: a for loop folded into one line. Advanced magic, but very common in real code.</p>`,
+    quest: `<ol>
+<li>Start with <code class="i">inventory = ["sword", "potion"]</code>.</li>
+<li>Add <code class="i">"map"</code> to the end. Remove <code class="i">"potion"</code> (you drank it).</li>
+<li>Create <code class="i">item_count</code> with the number of items, using <code class="i">len()</code>.</li>
+</ol>`,
+    hint: `inventory.append("map"), inventory.remove("potion"), item_count = len(inventory)`,
+    starter: `inventory = ["sword", "potion"]
+
+# Your bag spells here
+
+print(inventory)
+`,
+    words: [["bottomless", "without a bottom; it never fills up"], ["suspicious", "seems dishonest or strange"], ["to drink (drank, drunk)", "irregular verb: the past is 'drank'"]]
+  },
+  while: {
+    tab: "while loops", arc: "The Dungeon", title: "The Endless Corridor",
+    story: `
+<p>You enter your first dungeon. The corridor goes on and on. You don't know how many rooms there are, so a <code class="i">for</code> loop over a list doesn't help.</p>
+<div class="sysmsg">[SYSTEM] New skill unlocked: <b>WHILE LOOP</b> — repeat <b>while</b> a condition is True.</div>
+@@ex1@@
+<p>A <code class="i">while</code> loop checks its condition before every repetition. When the condition becomes <code class="i">False</code>, the loop stops.</p>
+<div class="sysmsg">[SYSTEM] ⚠ Curse warning: if the condition never becomes False, you are trapped in an <b>infinite loop</b>. In this world, the System will rescue you after 200,000 steps.</div>
+<h3>break and continue</h3>
+<ul>
+<li><code class="i">break</code> exits the loop immediately (an emergency teleport).</li>
+<li><code class="i">continue</code> skips the rest of this round and jumps to the next one.</li>
+</ul>
+@@ex2@@`,
+    quest: `<ol>
+<li>Start with <code class="i">hp = 100</code> (the boss's HP) and <code class="i">turns = 0</code>.</li>
+<li>Use a <code class="i">while</code> loop: while <code class="i">hp &gt; 0</code>, hit the boss for 30 damage and add 1 to <code class="i">turns</code>.</li>
+<li>Print the boss's HP after each hit. At the end, <code class="i">turns</code> should be 4.</li>
+</ol>`,
+    hint: `while hp > 0:   then indented:   hp -= 30   turns += 1   print("Boss HP:", hp)`,
+    starter: `hp = 100
+turns = 0
+
+# Write your while loop here
+
+print("Boss defeated in", turns, "turns!")
+`,
+    words: [["corridor", "a long, narrow passage inside a building"], ["to be trapped", "to be unable to escape"], ["to skip", "to not do one step and go to the next"]]
+  },
+  def: {
+    tab: "functions", arc: "The Mentor", title: "Def-sensei's Spellbook",
+    story: `
+<p>In the next town, an old wizard watches you practice. His robe has the word <code class="i">def</code> embroidered on the back.</p>
+<p><span class="dialogue">"Boy. Why do you shout the entire fireball incantation every single time? Seal it into a <strong>function</strong>. Then you only say its name."</span></p>
+@@ex1@@
+<p>Def-sensei taps your forehead with his staff. <span class="dialogue">"Remember the four parts."</span></p>
+<ul>
+<li><code class="i">def</code> creates the spell. The name follows the same rules as variables.</li>
+<li><code class="i">target</code> and <code class="i">power</code> are <strong>parameters</strong>: the ingredients you pass in.</li>
+<li><code class="i">return</code> sends a result back, so you can keep it in a variable.</li>
+<li>Without <code class="i">return</code>, a function gives back <code class="i">None</code>: an empty potion bottle.</li>
+</ul>
+<h3>Default ingredients</h3>
+<p>Parameters can have a default value. If you don't pass it, Python uses the default.</p>
+@@ex2@@
+<div class="sysmsg">[SYSTEM] Tip: <b>print</b> shows something on the screen. <b>return</b> gives a value back to the code. They are not the same thing!</div>`,
+    quest: `<ol>
+<li>Write a function <code class="i">heal(hp, amount=20)</code>.</li>
+<li>It must <strong>return</strong> the new hp (<code class="i">hp + amount</code>).</li>
+<li>Test it: <code class="i">heal(10)</code> should give <code class="i">30</code>, <code class="i">heal(5, 50)</code> should give <code class="i">55</code>.</li>
+</ol>`,
+    hint: `def heal(hp, amount=20):  then on the next line, indented:  return hp + amount`,
+    starter: `# Write the heal function here
+
+
+print(heal(10))      # should show 30
+print(heal(5, 50))   # should show 55
+`,
+    words: [["to seal", "to close something tightly (here: to save a spell)"], ["ingredient", "one of the things you need to make something"], ["embroidered", "decorated with sewn thread"]]
+  },
+  match: {
+    tab: "match / case", arc: "The Capital", title: "The Gatekeeper's Ledger",
+    story: `
+<p>The royal capital has a huge gate. A tired knight checks every traveler's class and hands them a weapon. He is using a very long <code class="i">if / elif / elif / elif</code> chain and looks like he wants to cry.</p>
+<div class="sysmsg">[SYSTEM] New skill unlocked: <b>MATCH / CASE</b> — compare one value against many patterns.</div>
+@@ex1@@
+<ul>
+<li><code class="i">match</code> takes the value you want to check.</li>
+<li>Each <code class="i">case</code> is one possible value.</li>
+<li><code class="i">case "a" | "b":</code> means "a <strong>or</strong> b".</li>
+<li><code class="i">case _:</code> catches everything else, like <code class="i">else</code>.</li>
+</ul>
+<p>Here is the same logic with <code class="i">if/elif</code>. Both work, but <code class="i">match</code> is easier to read when you check one value many times.</p>
+@@ex2@@
+<p>The knight sheds a single grateful tear. <span class="dialogue">"Thank you, stranger. Now please automate my job."</span></p>`,
+    quest: `<ol>
+<li>Complete the function <code class="i">weapon_for(job)</code> using <code class="i">match</code>.</li>
+<li>Return <code class="i">"sword"</code> for <code class="i">"warrior"</code> or <code class="i">"knight"</code>, <code class="i">"staff"</code> for <code class="i">"mage"</code>, <code class="i">"bow"</code> for <code class="i">"archer"</code>.</li>
+<li>Return <code class="i">"fists"</code> for anything else.</li>
+</ol>`,
+    hint: `Inside the function: match job:  then  case "warrior" | "knight":  return "sword"  … and finish with  case _:  return "fists"`,
+    starter: `def weapon_for(job):
+    # use match / case here
+    pass
+
+
+print(weapon_for("knight"))   # sword
+print(weapon_for("mage"))     # staff
+print(weapon_for("bard"))     # fists
+`,
+    words: [["ledger", "a book where records are written"], ["to hand (someone) something", "to give it to them with your hand"], ["to shed a tear", "to cry a little"]]
+  },
+  dict: {
+    tab: "dictionaries", arc: "Awakening", title: "Status Window, Open!",
+    story: `
+<p>Every isekai hero eventually shouts the sacred words. You raise your hand.</p>
+<p><span class="dialogue">"STATUS!"</span></p>
+<div class="sysmsg">[SYSTEM] Your status window is a <b>dictionary</b>: each value has a name (a <b>key</b>).</div>
+@@ex1@@
+<ul>
+<li>A dictionary uses <code class="i">{ key: value }</code>.</li>
+<li><code class="i">status["hp"]</code> reads a value. <code class="i">status["hp"] = 90</code> changes it.</li>
+<li>Assigning a new key adds it: <code class="i">status["title"] = "Hero"</code>.</li>
+<li><code class="i">status.get("mp", 0)</code> reads safely: if the key doesn't exist, you get <code class="i">0</code> instead of an error.</li>
+</ul>
+<h3>Looping over the window</h3>
+@@ex2@@`,
+    quest: `<ol>
+<li>Create a dictionary <code class="i">status</code> with <code class="i">"name": "Lydson"</code>, <code class="i">"level": 1</code> and <code class="i">"hp": 100</code>.</li>
+<li>Level up! Add 1 to <code class="i">status["level"]</code>.</li>
+<li>Loop with <code class="i">.items()</code> and print every line as <code class="i">key: value</code> (for example <code class="i">level: 2</code>).</li>
+</ol>`,
+    hint: `status["level"] += 1   then   for key, value in status.items(): print(f"{key}: {value}")`,
+    starter: `# Create the status dictionary
+
+
+# Level up
+
+
+# Print the status window
+`,
+    words: [["to raise your hand", "to lift your hand up"], ["sacred", "holy, very special"], ["to level up", "to reach the next level (gaming)"]]
+  },
+  boss: {
+    tab: "boss fight", arc: "Final Arc", title: "The Slime King",
+    story: `
+<p>The ground shakes. A slime the size of a castle appears, wearing a tiny golden crown.</p>
+<p><span class="dialogue">"So you are the otherworlder who knows Python,"</span> it gurgles. <span class="dialogue">"Let's see if you remember EVERYTHING."</span></p>
+<div class="sysmsg">[SYSTEM] Final quest: combine <b>functions</b>, <b>loops</b>, <b>if</b> and <b>return</b>.</div>
+<p>You remember a useful trick: <code class="i">enumerate()</code> gives you the position and the item at the same time.</p>
+@@ex1@@
+<p>And a <code class="i">return</code> inside a loop stops the whole function immediately. Perfect for finishing a boss.</p>
+@@ex2@@`,
+    quest: `<ol>
+<li>Complete <code class="i">fight(boss_hp, damages)</code>. <code class="i">damages</code> is a list of numbers, one per turn.</li>
+<li>Subtract each damage from <code class="i">boss_hp</code>, in order.</li>
+<li>When <code class="i">boss_hp</code> reaches 0 or less, <strong>return the turn number</strong> (the first turn is 1).</li>
+<li>If the boss survives every turn, return <code class="i">-1</code>.</li>
+</ol>`,
+    hint: `for turn, dmg in enumerate(damages, start=1): boss_hp -= dmg; if boss_hp <= 0: return turn. After the loop: return -1.`,
+    starter: `def fight(boss_hp, damages):
+    # Your final spell
+    pass
+
+
+print(fight(50, [20, 20, 20]))   # 3
+print(fight(100, [10, 10]))      # -1
+print(fight(10, [50, 1]))        # 1
+`,
+    words: [["to gurgle", "to make a bubbling, liquid sound"], ["to survive", "to stay alive"], ["otherworlder", "someone from another world (isekai slang)"]]
+  }
+};
+
+TEXT.pt = {
+  print: {
+    tab: "print()", arc: "A Invocação", title: "Olá, Outro Mundo",
+    story: `
+<p>Você estava atravessando a rua, olhando o celular, quando ouviu uma buzina muito alta. Depois, tudo ficou branco.</p>
+<p>Você está flutuando em um vazio branco sem fim. Uma deusa está sentada em uma nuvem, comendo um sanduíche. Ela parece surpresa ao te ver.</p>
+<p><span class="dialogue">"Ah! Mais um. Desculpa pelo caminhão. Deixa eu te dar uma habilidade antes de te mandar para o meu mundo."</span></p>
+<div class="sysmsg">[SISTEMA] Bem-vindo, <b>Lydson</b>. Você recebeu a habilidade única: <b>PYTHON</b>.<br>[SISTEMA] Primeira técnica desbloqueada: <b>print()</b> — faz o Sistema dizer alguma coisa.</div>
+<p>Todo feitiço deste mundo é escrito em Python. O feitiço mais simples é o <code class="i">print()</code>. Tudo o que você coloca dentro dos parênteses aparece no terminal.</p>
+@@ex1@@
+<ul>
+<li>Texto precisa estar entre aspas: <code class="i">"assim"</code> ou <code class="i">'assim'</code>. Em Python, texto se chama <strong>string</strong>.</li>
+<li>Números não precisam de aspas.</li>
+<li>Vírgulas deixam você mostrar várias coisas de uma vez. O Python coloca um espaço entre elas.</li>
+<li>Uma linha que começa com <code class="i">#</code> é um <strong>comentário</strong>. O Python ignora. É uma anotação para humanos.</li>
+</ul>
+<h3>As aspas mudam tudo</h3>
+@@ex2@@
+<p>Com aspas, o Python mostra o texto exatamente como você escreveu. Sem aspas, o Python <em>calcula</em> primeiro.</p>`,
+    quest: `<ol>
+<li>Mostre <code class="i">Hello, System!</code></li>
+<li>Mostre <code class="i">I am ready.</code> (com o ponto final!)</li>
+<li>Mostre o resultado de <code class="i">6 * 7</code>. Deixe o Python fazer a conta: não digite 42 você mesmo!</li>
+</ol>`,
+    hint: `Três linhas: print("Hello, System!") depois print("I am ready.") depois print(6 * 7) (sem aspas na última).`,
+    starter: `# Seu primeiro feitiço. Escreva três linhas com print() abaixo.
+
+`,
+    words: [["void", "um espaço completamente vazio"], ["to be summoned", "ser chamado para algum lugar (geralmente por magia)"], ["horn", "buzina: o som alto de um carro ou caminhão"]]
+  },
+  vars: {
+    tab: "variáveis", arc: "Criação de Personagem", title: "Dê Nome ao Seu Herói",
+    story: `
+<p>A deusa termina o sanduíche e abre um menu gigante e brilhante.</p>
+<p><span class="dialogue">"Hora de criar o personagem! O Sistema guarda as coisas usando <strong>variáveis</strong>. Pense em uma variável como uma caixa com uma etiqueta."</span></p>
+@@ex1@@
+<ul>
+<li><code class="i">name = "Lydson"</code> quer dizer "coloque o texto Lydson em uma caixa chamada name". O sinal <code class="i">=</code> <strong>guarda</strong> um valor; ele não quer dizer "igual" como na matemática.</li>
+<li>Existem quatro tipos básicos de valores: <strong>str</strong> (texto), <strong>int</strong> (número inteiro), <strong>float</strong> (número decimal) e <strong>bool</strong> (True ou False).</li>
+<li><code class="i">type(x)</code> mostra o tipo de um valor.</li>
+<li>Nomes de variáveis usam letras minúsculas e underline: <code class="i">hero_name</code>, e não <code class="i">Hero Name</code>.</li>
+</ul>
+<h3>Mudando uma variável e f-strings</h3>
+<p>Uma variável pode mudar. E uma <strong>f-string</strong> (uma string com <code class="i">f</code> antes das aspas) deixa você colocar variáveis dentro do texto usando <code class="i">{ }</code>.</p>
+@@ex2@@`,
+    quest: `<ol>
+<li>Preencha <code class="i">hero_name</code> com o seu nome (dentro das aspas).</li>
+<li>Coloque <code class="i">"mage"</code> em <code class="i">hero_class</code> e <code class="i">100</code> em <code class="i">hp</code>.</li>
+<li>Use uma f-string para mostrar: <code class="i">Lydson the mage has 100 HP.</code> (com o seu hero_name).</li>
+</ol>`,
+    hint: `print(f"{hero_name} the {hero_class} has {hp} HP.")`,
+    starter: `# Crie seu personagem
+hero_name = ""     # seu nome dentro das aspas
+hero_class = ""    # sua classe: mage
+hp = 0             # mude para 100
+
+# Mostre a ficha do personagem com uma f-string
+`,
+    words: [["to store", "guardar algo para usar depois"], ["label", "etiqueta: um pequeno papel com um nome"], ["glowing", "brilhante, que emite uma luz suave"]]
+  },
+  math: {
+    tab: "contas e tipos", arc: "A Primeira Vila", title: "A Conta do Estalajadeiro",
+    story: `
+<p>Você cai de cara em uma vilazinha. Tem 50 moedas de ouro e nenhuma ideia de como o dinheiro funciona aqui. O estalajadeiro sorri um pouco demais.</p>
+<div class="sysmsg">[SISTEMA] Habilidade desbloqueada: <b>ARITMÉTICA</b> — nunca mais seja enganado.</div>
+@@ex1@@
+<ul>
+<li><code class="i">/</code> sempre dá um decimal (float). <code class="i">//</code> dá um número inteiro e joga fora o resto.</li>
+<li><code class="i">%</code> (módulo) dá o <strong>resto</strong> da divisão. <code class="i">10 % 3</code> é 1 porque 10 = 3 + 3 + 3 + <strong>1</strong>.</li>
+<li><code class="i">**</code> é potência: <code class="i">2 ** 3</code> = 2 × 2 × 2.</li>
+<li>Atalhos: <code class="i">gold -= 5</code> é o mesmo que <code class="i">gold = gold - 5</code>. O mesmo vale para <code class="i">+=</code> e <code class="i">*=</code>.</li>
+</ul>
+<h3>A armadilha dos números em texto</h3>
+<p>O estalajadeiro escreve sua conta no papel: <code class="i">"5"</code>. Isso é uma string, não um número!</p>
+@@ex2@@
+<p><code class="i">int()</code> transforma texto em número inteiro, <code class="i">float()</code> em decimal, e <code class="i">str()</code> transforma um número em texto.</p>`,
+    quest: `<ol>
+<li>Uma noite na estalagem custa <code class="i">price = 7</code> moedas. Você fica <code class="i">nights = 3</code> noites. Você tem <code class="i">gold = 50</code>.</li>
+<li>Crie <code class="i">cost</code> (price × nights) e <code class="i">change</code> (o ouro que sobra). Use as variáveis, não os números.</li>
+<li>Crie <code class="i">max_nights</code>: quantas noites completas 50 moedas pagam. Use <code class="i">//</code>.</li>
+<li>Mostre: <code class="i">You pay 21 gold and keep 29.</code> usando uma f-string.</li>
+</ol>`,
+    hint: `cost = price * nights, change = gold - cost, max_nights = gold // price, depois print(f"You pay {cost} gold and keep {change}.")`,
+    starter: `price = 7
+nights = 3
+gold = 50
+
+# Calcule cost, change e max_nights
+
+
+# Mostre a conta
+`,
+    words: [["bill", "conta: o papel que mostra quanto você precisa pagar"], ["change", "troco: o dinheiro que volta depois de pagar"], ["to cheat (someone)", "enganar alguém para levar vantagem"]]
+  },
+  if: {
+    tab: "if / elif / else", arc: "A Encruzilhada", title: "A Bifurcação na Estrada",
+    story: `
+<p>Você sai da vila e chega a uma bifurcação na estrada. Uma placa de madeira diz: <em>"Esquerda: monstros. Direita: mais monstros."</em> Ótimo.</p>
+<p>Você já conhece esta magia, mas o Sistema faz você revisar mesmo assim.</p>
+<div class="sysmsg">[SISTEMA] Revisão de habilidade: <b>IF / ELIF / ELSE</b> — tomar decisões.</div>
+@@ex1@@
+<ul>
+<li>O Python confere de cima para baixo e roda só o <strong>primeiro</strong> bloco que for True.</li>
+<li>Comparações: <code class="i">==</code> (igual), <code class="i">!=</code> (diferente), <code class="i">&gt;</code>, <code class="i">&lt;</code>, <code class="i">&gt;=</code>, <code class="i">&lt;=</code>.</li>
+<li>Não confunda: <code class="i">=</code> guarda um valor, <code class="i">==</code> compara dois valores.</li>
+</ul>
+<h3>and, or, not</h3>
+@@ex2@@
+<ul>
+<li><code class="i">and</code>: os dois precisam ser True. <code class="i">or</code>: pelo menos um precisa ser True. <code class="i">not</code>: inverte True e False.</li>
+</ul>`,
+    quest: `<ol>
+<li>Mantenha <code class="i">hp = 35</code> na primeira linha.</li>
+<li>Crie uma variável <code class="i">action</code>: <code class="i">"attack"</code> se hp for maior que 70, <code class="i">"defend"</code> se hp for maior que 30, senão <code class="i">"run"</code>.</li>
+<li>Mostre a ação. O Sistema vai testar seu código com valores diferentes de hp!</li>
+</ol>`,
+    hint: `if hp > 70: action = "attack"  /  elif hp > 30: action = "defend"  /  else: action = "run". Cada linha de action vai indentada embaixo da sua condição.`,
+    starter: `hp = 35
+
+# Decida a ação com if / elif / else
+
+
+print("Action:", action)
+`,
+    words: [["fork in the road", "bifurcação: lugar onde uma estrada se divide em duas"], ["to review", "revisar, estudar algo de novo"], ["to flip", "inverter, virar para o lado oposto"]]
+  },
+  for: {
+    tab: "loops for", arc: "A Primeira Batalha", title: "A Horda de Goblins",
+    story: `
+<p>Você pega o caminho da esquerda e entra em um campo que cheira a chuva e a más decisões. De repente, a janela azul pisca em vermelho.</p>
+<div class="sysmsg">[SISTEMA] Alerta: monstros hostis se aproximando.</div>
+<p>Um goblin pula do mato. Depois outro. Depois <em>mais cinco</em>.</p>
+<p><span class="dialogue">"Eu vou ter que escrever <code class="i">attack()</code> sete vezes?!"</span> você grita.</p>
+<div class="sysmsg">[SISTEMA] Nova habilidade desbloqueada: <b>LOOP FOR</b> — repete um feitiço uma vez para cada item de um grupo.</div>
+<p>Os goblins estão em uma <strong>lista</strong>: valores entre <code class="i">[ ]</code>, separados por vírgulas.</p>
+@@ex1@@
+<p>O loop pega cada goblin da lista, um de cada vez, coloca na variável <code class="i">goblin</code> e roda o código indentado. Sete goblins, um feitiço.</p>
+<h3>A técnica do range()</h3>
+<p>Quando você só precisa repetir algo um certo número de vezes, use <code class="i">range()</code>.</p>
+@@ex2@@
+<ul>
+<li><code class="i">range(3)</code> dá <code class="i">0, 1, 2</code>. Ele <strong>para antes</strong> do número. Todo herói isekai esquece isso pelo menos uma vez.</li>
+<li><code class="i">range(1, 4)</code> dá <code class="i">1, 2, 3</code> (início, fim).</li>
+<li>O código que se repete precisa estar <strong>indentado</strong> (4 espaços).</li>
+</ul>`,
+    quest: `<ol>
+<li>A lista <code class="i">goblins</code> e o contador <code class="i">defeated = 0</code> já estão prontos.</li>
+<li>Use um loop <code class="i">for</code> para mostrar <code class="i">You defeat Gob!</code> (e o mesmo para os outros).</li>
+<li>Dentro do loop, some 1 em <code class="i">defeated</code> a cada vez.</li>
+</ol>`,
+    hint: `for goblin in goblins:  depois, indentado:  print(f"You defeat {goblin}!")  e  defeated += 1`,
+    starter: `goblins = ["Gob", "Grub", "Snot"]
+defeated = 0
+
+# Escreva seu loop for aqui
+
+print("Goblins defeated:", defeated)
+`,
+    words: [["horde", "horda: um grupo muito grande (geralmente de inimigos)"], ["to defeat", "derrotar, vencer alguém"], ["meadow", "campo de grama e flores"]]
+  },
+  list: {
+    tab: "listas", arc: "O Mercador", title: "A Bolsa Sem Fundo",
+    story: `
+<p>Um mercador suspeito te vende uma bolsa mágica. <span class="dialogue">"Ela guarda qualquer coisa, em ordem, para sempre! Só 3 moedas!"</span> É uma <strong>lista</strong> do Python.</p>
+@@ex1@@
+<ul>
+<li><code class="i">.append(x)</code> coloca um item no final.</li>
+<li><code class="i">.remove(x)</code> tira o primeiro item igual a x.</li>
+<li><code class="i">.pop()</code> tira o último item e entrega para você.</li>
+<li><code class="i">len(bag)</code> conta os itens. <code class="i">x in bag</code> confere se ele está lá.</li>
+<li><code class="i">bag[0]</code> é o primeiro item. <code class="i">bag[-1]</code> é o último.</li>
+</ul>
+<h3>Fatiamento e o feitiço de lista</h3>
+@@ex2@@
+<p>A última linha é uma <strong>list comprehension</strong>: um loop for dobrado em uma linha só. Magia avançada, mas muito comum em código de verdade.</p>`,
+    quest: `<ol>
+<li>Comece com <code class="i">inventory = ["sword", "potion"]</code>.</li>
+<li>Adicione <code class="i">"map"</code> no final. Tire <code class="i">"potion"</code> (você bebeu).</li>
+<li>Crie <code class="i">item_count</code> com o número de itens, usando <code class="i">len()</code>.</li>
+</ol>`,
+    hint: `inventory.append("map"), inventory.remove("potion"), item_count = len(inventory)`,
+    starter: `inventory = ["sword", "potion"]
+
+# Seus feitiços de bolsa aqui
+
+print(inventory)
+`,
+    words: [["bottomless", "sem fundo; nunca enche"], ["suspicious", "suspeito, parece desonesto ou estranho"], ["to drink (drank, drunk)", "beber; verbo irregular: o passado é 'drank'"]]
+  },
+  while: {
+    tab: "loops while", arc: "A Masmorra", title: "O Corredor Sem Fim",
+    story: `
+<p>Você entra na sua primeira masmorra. O corredor não acaba nunca. Você não sabe quantas salas existem, então um loop <code class="i">for</code> em uma lista não ajuda.</p>
+<div class="sysmsg">[SISTEMA] Nova habilidade desbloqueada: <b>LOOP WHILE</b> — repete <b>enquanto</b> uma condição for True.</div>
+@@ex1@@
+<p>Um loop <code class="i">while</code> confere a condição antes de cada repetição. Quando a condição vira <code class="i">False</code>, o loop para.</p>
+<div class="sysmsg">[SISTEMA] ⚠ Alerta de maldição: se a condição nunca virar False, você fica preso em um <b>loop infinito</b>. Neste mundo, o Sistema te resgata depois de 200.000 passos.</div>
+<h3>break e continue</h3>
+<ul>
+<li><code class="i">break</code> sai do loop na hora (um teletransporte de emergência).</li>
+<li><code class="i">continue</code> pula o resto desta rodada e vai para a próxima.</li>
+</ul>
+@@ex2@@`,
+    quest: `<ol>
+<li>Comece com <code class="i">hp = 100</code> (o HP do chefe) e <code class="i">turns = 0</code>.</li>
+<li>Use um loop <code class="i">while</code>: enquanto <code class="i">hp &gt; 0</code>, acerte o chefe com 30 de dano e some 1 em <code class="i">turns</code>.</li>
+<li>Mostre o HP do chefe depois de cada golpe. No final, <code class="i">turns</code> deve ser 4.</li>
+</ol>`,
+    hint: `while hp > 0:   depois, indentado:   hp -= 30   turns += 1   print("Boss HP:", hp)`,
+    starter: `hp = 100
+turns = 0
+
+# Escreva seu loop while aqui
+
+print("Boss defeated in", turns, "turns!")
+`,
+    words: [["corridor", "corredor: passagem longa e estreita dentro de um prédio"], ["to be trapped", "estar preso, sem conseguir escapar"], ["to skip", "pular uma etapa e ir para a próxima"]]
+  },
+  def: {
+    tab: "funções", arc: "O Mestre", title: "O Grimório do Def-sensei",
+    story: `
+<p>Na cidade seguinte, um mago velho observa você treinar. O manto dele tem a palavra <code class="i">def</code> bordada nas costas.</p>
+<p><span class="dialogue">"Garoto. Por que você grita o encantamento inteiro da bola de fogo toda vez? Sele ele em uma <strong>função</strong>. Aí você só fala o nome."</span></p>
+@@ex1@@
+<p>Def-sensei bate na sua testa com o cajado. <span class="dialogue">"Lembre-se das quatro partes."</span></p>
+<ul>
+<li><code class="i">def</code> cria o feitiço. O nome segue as mesmas regras das variáveis.</li>
+<li><code class="i">target</code> e <code class="i">power</code> são <strong>parâmetros</strong>: os ingredientes que você entrega.</li>
+<li><code class="i">return</code> devolve um resultado, para você guardar em uma variável.</li>
+<li>Sem <code class="i">return</code>, a função devolve <code class="i">None</code>: um frasco de poção vazio.</li>
+</ul>
+<h3>Ingredientes padrão</h3>
+<p>Parâmetros podem ter um valor padrão. Se você não passar, o Python usa o padrão.</p>
+@@ex2@@
+<div class="sysmsg">[SISTEMA] Dica: <b>print</b> mostra algo na tela. <b>return</b> devolve um valor para o código. Não são a mesma coisa!</div>`,
+    quest: `<ol>
+<li>Escreva uma função <code class="i">heal(hp, amount=20)</code>.</li>
+<li>Ela precisa <strong>retornar</strong> o novo hp (<code class="i">hp + amount</code>).</li>
+<li>Teste: <code class="i">heal(10)</code> deve dar <code class="i">30</code>, <code class="i">heal(5, 50)</code> deve dar <code class="i">55</code>.</li>
+</ol>`,
+    hint: `def heal(hp, amount=20):  e na linha seguinte, indentado:  return hp + amount`,
+    starter: `# Escreva a função heal aqui
+
+
+print(heal(10))      # deve mostrar 30
+print(heal(5, 50))   # deve mostrar 55
+`,
+    words: [["to seal", "selar, fechar bem (aqui: guardar um feitiço)"], ["ingredient", "ingrediente: uma das coisas que você precisa para fazer algo"], ["embroidered", "bordado com linha"]]
+  },
+  match: {
+    tab: "match / case", arc: "A Capital", title: "O Livro do Guardião",
+    story: `
+<p>A capital do reino tem um portão enorme. Um cavaleiro cansado confere a classe de cada viajante e entrega uma arma. Ele usa uma corrente enorme de <code class="i">if / elif / elif / elif</code> e parece que vai chorar.</p>
+<div class="sysmsg">[SISTEMA] Nova habilidade desbloqueada: <b>MATCH / CASE</b> — compara um valor com vários padrões.</div>
+@@ex1@@
+<ul>
+<li><code class="i">match</code> recebe o valor que você quer conferir.</li>
+<li>Cada <code class="i">case</code> é um valor possível.</li>
+<li><code class="i">case "a" | "b":</code> quer dizer "a <strong>ou</strong> b".</li>
+<li><code class="i">case _:</code> pega todo o resto, como o <code class="i">else</code>.</li>
+</ul>
+<p>Aqui está a mesma lógica com <code class="i">if/elif</code>. As duas funcionam, mas o <code class="i">match</code> é mais fácil de ler quando você confere um valor muitas vezes.</p>
+@@ex2@@
+<p>O cavaleiro derrama uma única lágrima de gratidão. <span class="dialogue">"Obrigado, forasteiro. Agora, por favor, automatize meu trabalho."</span></p>`,
+    quest: `<ol>
+<li>Complete a função <code class="i">weapon_for(job)</code> usando <code class="i">match</code>.</li>
+<li>Retorne <code class="i">"sword"</code> para <code class="i">"warrior"</code> ou <code class="i">"knight"</code>, <code class="i">"staff"</code> para <code class="i">"mage"</code>, <code class="i">"bow"</code> para <code class="i">"archer"</code>.</li>
+<li>Retorne <code class="i">"fists"</code> para qualquer outra coisa.</li>
+</ol>`,
+    hint: `Dentro da função: match job:  depois  case "warrior" | "knight":  return "sword"  … e termine com  case _:  return "fists"`,
+    starter: `def weapon_for(job):
+    # use match / case aqui
+    pass
+
+
+print(weapon_for("knight"))   # sword
+print(weapon_for("mage"))     # staff
+print(weapon_for("bard"))     # fists
+`,
+    words: [["ledger", "livro de registros"], ["to hand (someone) something", "entregar algo na mão de alguém"], ["to shed a tear", "derramar uma lágrima, chorar um pouco"]]
+  },
+  dict: {
+    tab: "dicionários", arc: "O Despertar", title: "Janela de Status, Abra!",
+    story: `
+<p>Todo herói isekai uma hora grita as palavras sagradas. Você levanta a mão.</p>
+<p><span class="dialogue">"STATUS!"</span></p>
+<div class="sysmsg">[SISTEMA] Sua janela de status é um <b>dicionário</b>: cada valor tem um nome (uma <b>chave</b>).</div>
+@@ex1@@
+<ul>
+<li>Um dicionário usa <code class="i">{ chave: valor }</code>.</li>
+<li><code class="i">status["hp"]</code> lê um valor. <code class="i">status["hp"] = 90</code> muda o valor.</li>
+<li>Atribuir uma chave nova adiciona ela: <code class="i">status["title"] = "Hero"</code>.</li>
+<li><code class="i">status.get("mp", 0)</code> lê com segurança: se a chave não existir, você recebe <code class="i">0</code> em vez de um erro.</li>
+</ul>
+<h3>Percorrendo a janela</h3>
+@@ex2@@`,
+    quest: `<ol>
+<li>Crie um dicionário <code class="i">status</code> com <code class="i">"name": "Lydson"</code>, <code class="i">"level": 1</code> e <code class="i">"hp": 100</code>.</li>
+<li>Suba de nível! Some 1 em <code class="i">status["level"]</code>.</li>
+<li>Faça um loop com <code class="i">.items()</code> e mostre cada linha como <code class="i">chave: valor</code> (por exemplo <code class="i">level: 2</code>).</li>
+</ol>`,
+    hint: `status["level"] += 1   depois   for key, value in status.items(): print(f"{key}: {value}")`,
+    starter: `# Crie o dicionário status
+
+
+# Suba de nível
+
+
+# Mostre a janela de status
+`,
+    words: [["to raise your hand", "levantar a mão"], ["sacred", "sagrado, muito especial"], ["to level up", "subir de nível (games)"]]
+  },
+  boss: {
+    tab: "chefe final", arc: "Arco Final", title: "O Rei Slime",
+    story: `
+<p>O chão treme. Um slime do tamanho de um castelo aparece, usando uma coroinha de ouro.</p>
+<p><span class="dialogue">"Então você é o forasteiro que sabe Python,"</span> ele borbulha. <span class="dialogue">"Vamos ver se você lembra de TUDO."</span></p>
+<div class="sysmsg">[SISTEMA] Missão final: combine <b>funções</b>, <b>loops</b>, <b>if</b> e <b>return</b>.</div>
+<p>Você lembra de um truque útil: <code class="i">enumerate()</code> te dá a posição e o item ao mesmo tempo.</p>
+@@ex1@@
+<p>E um <code class="i">return</code> dentro de um loop para a função inteira na hora. Perfeito para acabar com um chefe.</p>
+@@ex2@@`,
+    quest: `<ol>
+<li>Complete <code class="i">fight(boss_hp, damages)</code>. <code class="i">damages</code> é uma lista de números, um por turno.</li>
+<li>Subtraia cada dano de <code class="i">boss_hp</code>, em ordem.</li>
+<li>Quando <code class="i">boss_hp</code> chegar a 0 ou menos, <strong>retorne o número do turno</strong> (o primeiro turno é 1).</li>
+<li>Se o chefe sobreviver a todos os turnos, retorne <code class="i">-1</code>.</li>
+</ol>`,
+    hint: `for turn, dmg in enumerate(damages, start=1): boss_hp -= dmg; if boss_hp <= 0: return turn. Depois do loop: return -1.`,
+    starter: `def fight(boss_hp, damages):
+    # Seu feitiço final
+    pass
+
+
+print(fight(50, [20, 20, 20]))   # 3
+print(fight(100, [10, 10]))      # -1
+print(fight(10, [50, 1]))        # 1
+`,
+    words: [["to gurgle", "borbulhar, fazer um som de líquido"], ["to survive", "sobreviver, continuar vivo"], ["otherworlder", "alguém de outro mundo (gíria de isekai)"]]
+  }
+};
+
+TEXT.es = {
+  print: {
+    tab: "print()", arc: "La Invocación", title: "Hola, Otro Mundo",
+    story: `
+<p>Estabas cruzando la calle, mirando el celular, cuando escuchaste una bocina muy fuerte. Después, todo se volvió blanco.</p>
+<p>Estás flotando en un vacío blanco sin fin. Una diosa está sentada en una nube, comiendo un sándwich. Parece sorprendida de verte.</p>
+<p><span class="dialogue">"¡Oh! Otro más. Perdón por lo del camión. Déjame darte una habilidad antes de enviarte a mi mundo."</span></p>
+<div class="sysmsg">[SISTEMA] Bienvenido, <b>Lydson</b>. Has recibido la habilidad única: <b>PYTHON</b>.<br>[SISTEMA] Primera técnica desbloqueada: <b>print()</b> — hace que el Sistema diga algo.</div>
+<p>Todos los hechizos de este mundo se escriben en Python. El hechizo más simple es <code class="i">print()</code>. Todo lo que pongas dentro de los paréntesis aparece en la terminal.</p>
+@@ex1@@
+<ul>
+<li>El texto tiene que ir entre comillas: <code class="i">"así"</code> o <code class="i">'así'</code>. En Python, el texto se llama <strong>string</strong>.</li>
+<li>Los números no necesitan comillas.</li>
+<li>Las comas te dejan mostrar varias cosas a la vez. Python pone un espacio entre ellas.</li>
+<li>Una línea que empieza con <code class="i">#</code> es un <strong>comentario</strong>. Python lo ignora. Es una nota para humanos.</li>
+</ul>
+<h3>Las comillas lo cambian todo</h3>
+@@ex2@@
+<p>Con comillas, Python muestra el texto exactamente como lo escribiste. Sin comillas, Python primero lo <em>calcula</em>.</p>`,
+    quest: `<ol>
+<li>Muestra <code class="i">Hello, System!</code></li>
+<li>Muestra <code class="i">I am ready.</code> (¡con el punto!)</li>
+<li>Muestra el resultado de <code class="i">6 * 7</code>. Deja que Python haga la cuenta: ¡no escribas 42 tú mismo!</li>
+</ol>`,
+    hint: `Tres líneas: print("Hello, System!") luego print("I am ready.") luego print(6 * 7) (sin comillas en la última).`,
+    starter: `# Tu primer hechizo. Escribe tres líneas con print() abajo.
+
+`,
+    words: [["void", "un espacio completamente vacío"], ["to be summoned", "ser llamado a un lugar (a menudo por magia)"], ["horn", "bocina: el sonido fuerte de un auto o camión"]]
+  },
+  vars: {
+    tab: "variables", arc: "Creación de Personaje", title: "Nombra a Tu Héroe",
+    story: `
+<p>La diosa termina su sándwich y abre un menú gigante y brillante.</p>
+<p><span class="dialogue">"¡Hora de crear tu personaje! El Sistema recuerda las cosas usando <strong>variables</strong>. Piensa en una variable como una caja con una etiqueta."</span></p>
+@@ex1@@
+<ul>
+<li><code class="i">name = "Lydson"</code> significa "pon el texto Lydson en una caja llamada name". El signo <code class="i">=</code> <strong>guarda</strong> un valor; no significa "igual" como en matemáticas.</li>
+<li>Hay cuatro tipos básicos de valores: <strong>str</strong> (texto), <strong>int</strong> (número entero), <strong>float</strong> (número decimal) y <strong>bool</strong> (True o False).</li>
+<li><code class="i">type(x)</code> te dice el tipo de un valor.</li>
+<li>Los nombres de variables usan minúsculas y guiones bajos: <code class="i">hero_name</code>, no <code class="i">Hero Name</code>.</li>
+</ul>
+<h3>Cambiar una variable y f-strings</h3>
+<p>Una variable puede cambiar. Y un <strong>f-string</strong> (un string con <code class="i">f</code> antes de las comillas) te deja poner variables dentro del texto usando <code class="i">{ }</code>.</p>
+@@ex2@@`,
+    quest: `<ol>
+<li>Completa <code class="i">hero_name</code> con tu nombre (entre las comillas).</li>
+<li>Pon <code class="i">"mage"</code> en <code class="i">hero_class</code> y <code class="i">100</code> en <code class="i">hp</code>.</li>
+<li>Usa un f-string para mostrar: <code class="i">Lydson the mage has 100 HP.</code> (con tu hero_name).</li>
+</ol>`,
+    hint: `print(f"{hero_name} the {hero_class} has {hp} HP.")`,
+    starter: `# Crea tu personaje
+hero_name = ""     # tu nombre entre las comillas
+hero_class = ""    # tu clase: mage
+hp = 0             # cámbialo a 100
+
+# Muestra la ficha de tu personaje con un f-string
+`,
+    words: [["to store", "guardar algo para usarlo después"], ["label", "etiqueta: un papelito con un nombre"], ["glowing", "brillante, que da una luz suave"]]
+  },
+  math: {
+    tab: "cuentas y tipos", arc: "La Primera Aldea", title: "La Cuenta del Posadero",
+    story: `
+<p>Caes de cara en una pequeña aldea. Tienes 50 monedas de oro y ni idea de cómo funciona el dinero aquí. El posadero sonríe un poco demasiado.</p>
+<div class="sysmsg">[SISTEMA] Habilidad desbloqueada: <b>ARITMÉTICA</b> — que nunca más te engañen.</div>
+@@ex1@@
+<ul>
+<li><code class="i">/</code> siempre da un decimal (float). <code class="i">//</code> da un número entero y tira el resto.</li>
+<li><code class="i">%</code> (módulo) da el <strong>resto</strong> de la división. <code class="i">10 % 3</code> es 1 porque 10 = 3 + 3 + 3 + <strong>1</strong>.</li>
+<li><code class="i">**</code> es potencia: <code class="i">2 ** 3</code> = 2 × 2 × 2.</li>
+<li>Atajos: <code class="i">gold -= 5</code> es lo mismo que <code class="i">gold = gold - 5</code>. Igual con <code class="i">+=</code> y <code class="i">*=</code>.</li>
+</ul>
+<h3>La trampa de los números en texto</h3>
+<p>El posadero escribe tu cuenta en papel: <code class="i">"5"</code>. ¡Eso es un string, no un número!</p>
+@@ex2@@
+<p><code class="i">int()</code> convierte texto en número entero, <code class="i">float()</code> en decimal, y <code class="i">str()</code> convierte un número en texto.</p>`,
+    quest: `<ol>
+<li>Una noche en la posada cuesta <code class="i">price = 7</code> monedas. Te quedas <code class="i">nights = 3</code> noches. Tienes <code class="i">gold = 50</code>.</li>
+<li>Crea <code class="i">cost</code> (price × nights) y <code class="i">change</code> (el oro que te queda). Usa las variables, no los números.</li>
+<li>Crea <code class="i">max_nights</code>: cuántas noches completas pagan 50 monedas. Usa <code class="i">//</code>.</li>
+<li>Muestra: <code class="i">You pay 21 gold and keep 29.</code> usando un f-string.</li>
+</ol>`,
+    hint: `cost = price * nights, change = gold - cost, max_nights = gold // price, luego print(f"You pay {cost} gold and keep {change}.")`,
+    starter: `price = 7
+nights = 3
+gold = 50
+
+# Calcula cost, change y max_nights
+
+
+# Muestra la cuenta
+`,
+    words: [["bill", "cuenta: el papel que dice cuánto debes pagar"], ["change", "vuelto/cambio: el dinero que te devuelven al pagar"], ["to cheat (someone)", "engañar a alguien para sacar ventaja"]]
+  },
+  if: {
+    tab: "if / elif / else", arc: "La Encrucijada", title: "La Bifurcación del Camino",
+    story: `
+<p>Sales de la aldea y llegas a una bifurcación del camino. Un cartel de madera dice: <em>"Izquierda: monstruos. Derecha: más monstruos."</em> Genial.</p>
+<p>Ya conoces esta magia, pero el Sistema te hace repasarla igual.</p>
+<div class="sysmsg">[SISTEMA] Repaso de habilidad: <b>IF / ELIF / ELSE</b> — tomar decisiones.</div>
+@@ex1@@
+<ul>
+<li>Python revisa de arriba hacia abajo y ejecuta solo el <strong>primer</strong> bloque que sea True.</li>
+<li>Comparaciones: <code class="i">==</code> (igual), <code class="i">!=</code> (distinto), <code class="i">&gt;</code>, <code class="i">&lt;</code>, <code class="i">&gt;=</code>, <code class="i">&lt;=</code>.</li>
+<li>No los confundas: <code class="i">=</code> guarda un valor, <code class="i">==</code> compara dos valores.</li>
+</ul>
+<h3>and, or, not</h3>
+@@ex2@@
+<ul>
+<li><code class="i">and</code>: los dos deben ser True. <code class="i">or</code>: al menos uno debe ser True. <code class="i">not</code>: invierte True y False.</li>
+</ul>`,
+    quest: `<ol>
+<li>Mantén <code class="i">hp = 35</code> en la primera línea.</li>
+<li>Crea una variable <code class="i">action</code>: <code class="i">"attack"</code> si hp es mayor que 70, <code class="i">"defend"</code> si hp es mayor que 30, si no <code class="i">"run"</code>.</li>
+<li>Muestra la acción. ¡El Sistema probará tu código con distintos valores de hp!</li>
+</ol>`,
+    hint: `if hp > 70: action = "attack"  /  elif hp > 30: action = "defend"  /  else: action = "run". Cada línea de action va con sangría debajo de su condición.`,
+    starter: `hp = 35
+
+# Decide la acción con if / elif / else
+
+
+print("Action:", action)
+`,
+    words: [["fork in the road", "bifurcación: lugar donde un camino se divide en dos"], ["to review", "repasar, estudiar algo otra vez"], ["to flip", "invertir, dar vuelta al lado opuesto"]]
+  },
+  for: {
+    tab: "bucles for", arc: "La Primera Batalla", title: "La Horda de Goblins",
+    story: `
+<p>Tomas el camino de la izquierda y entras en una pradera que huele a lluvia y a malas decisiones. De pronto, la ventana azul parpadea en rojo.</p>
+<div class="sysmsg">[SISTEMA] Alerta: monstruos hostiles acercándose.</div>
+<p>Un goblin salta de los arbustos. Luego otro. Luego <em>cinco más</em>.</p>
+<p><span class="dialogue">"¡¿Tengo que escribir <code class="i">attack()</code> siete veces?!"</span> gritas.</p>
+<div class="sysmsg">[SISTEMA] Nueva habilidad desbloqueada: <b>BUCLE FOR</b> — repite un hechizo una vez por cada elemento de un grupo.</div>
+<p>Los goblins están en una <strong>lista</strong>: valores entre <code class="i">[ ]</code>, separados por comas.</p>
+@@ex1@@
+<p>El bucle toma cada goblin de la lista, uno por uno, lo pone en la variable <code class="i">goblin</code> y ejecuta el código con sangría. Siete goblins, un hechizo.</p>
+<h3>La técnica de range()</h3>
+<p>Cuando solo necesitas repetir algo cierta cantidad de veces, usa <code class="i">range()</code>.</p>
+@@ex2@@
+<ul>
+<li><code class="i">range(3)</code> da <code class="i">0, 1, 2</code>. <strong>Se detiene antes</strong> del número. Todo héroe isekai lo olvida al menos una vez.</li>
+<li><code class="i">range(1, 4)</code> da <code class="i">1, 2, 3</code> (inicio, fin).</li>
+<li>El código que se repite debe tener <strong>sangría</strong> (4 espacios).</li>
+</ul>`,
+    quest: `<ol>
+<li>La lista <code class="i">goblins</code> y el contador <code class="i">defeated = 0</code> ya están listos.</li>
+<li>Usa un bucle <code class="i">for</code> para mostrar <code class="i">You defeat Gob!</code> (y lo mismo con los demás).</li>
+<li>Dentro del bucle, suma 1 a <code class="i">defeated</code> cada vez.</li>
+</ol>`,
+    hint: `for goblin in goblins:  luego, con sangría:  print(f"You defeat {goblin}!")  y  defeated += 1`,
+    starter: `goblins = ["Gob", "Grub", "Snot"]
+defeated = 0
+
+# Escribe tu bucle for aquí
+
+print("Goblins defeated:", defeated)
+`,
+    words: [["horde", "horda: un grupo muy grande (normalmente de enemigos)"], ["to defeat", "derrotar, vencer a alguien"], ["meadow", "pradera: campo de pasto y flores"]]
+  },
+  list: {
+    tab: "listas", arc: "El Mercader", title: "La Bolsa Sin Fondo",
+    story: `
+<p>Un mercader sospechoso te vende una bolsa mágica. <span class="dialogue">"¡Guarda cualquier cosa, en orden, para siempre! ¡Solo 3 monedas!"</span> Es una <strong>lista</strong> de Python.</p>
+@@ex1@@
+<ul>
+<li><code class="i">.append(x)</code> pone un objeto al final.</li>
+<li><code class="i">.remove(x)</code> quita el primer objeto igual a x.</li>
+<li><code class="i">.pop()</code> saca el último objeto y te lo da.</li>
+<li><code class="i">len(bag)</code> cuenta los objetos. <code class="i">x in bag</code> revisa si está.</li>
+<li><code class="i">bag[0]</code> es el primer objeto. <code class="i">bag[-1]</code> es el último.</li>
+</ul>
+<h3>Rebanadas y el hechizo de lista</h3>
+@@ex2@@
+<p>La última línea es una <strong>list comprehension</strong>: un bucle for doblado en una sola línea. Magia avanzada, pero muy común en código real.</p>`,
+    quest: `<ol>
+<li>Empieza con <code class="i">inventory = ["sword", "potion"]</code>.</li>
+<li>Agrega <code class="i">"map"</code> al final. Quita <code class="i">"potion"</code> (te la bebiste).</li>
+<li>Crea <code class="i">item_count</code> con la cantidad de objetos, usando <code class="i">len()</code>.</li>
+</ol>`,
+    hint: `inventory.append("map"), inventory.remove("potion"), item_count = len(inventory)`,
+    starter: `inventory = ["sword", "potion"]
+
+# Tus hechizos de bolsa aquí
+
+print(inventory)
+`,
+    words: [["bottomless", "sin fondo; nunca se llena"], ["suspicious", "sospechoso, parece deshonesto o raro"], ["to drink (drank, drunk)", "beber; verbo irregular: el pasado es 'drank'"]]
+  },
+  while: {
+    tab: "bucles while", arc: "La Mazmorra", title: "El Pasillo Sin Fin",
+    story: `
+<p>Entras en tu primera mazmorra. El pasillo sigue y sigue. No sabes cuántas salas hay, así que un bucle <code class="i">for</code> sobre una lista no ayuda.</p>
+<div class="sysmsg">[SISTEMA] Nueva habilidad desbloqueada: <b>BUCLE WHILE</b> — repite <b>mientras</b> una condición sea True.</div>
+@@ex1@@
+<p>Un bucle <code class="i">while</code> revisa su condición antes de cada repetición. Cuando la condición se vuelve <code class="i">False</code>, el bucle se detiene.</p>
+<div class="sysmsg">[SISTEMA] ⚠ Alerta de maldición: si la condición nunca se vuelve False, quedas atrapado en un <b>bucle infinito</b>. En este mundo, el Sistema te rescata después de 200.000 pasos.</div>
+<h3>break y continue</h3>
+<ul>
+<li><code class="i">break</code> sale del bucle de inmediato (un teletransporte de emergencia).</li>
+<li><code class="i">continue</code> salta el resto de esta vuelta y pasa a la siguiente.</li>
+</ul>
+@@ex2@@`,
+    quest: `<ol>
+<li>Empieza con <code class="i">hp = 100</code> (el HP del jefe) y <code class="i">turns = 0</code>.</li>
+<li>Usa un bucle <code class="i">while</code>: mientras <code class="i">hp &gt; 0</code>, golpea al jefe con 30 de daño y suma 1 a <code class="i">turns</code>.</li>
+<li>Muestra el HP del jefe después de cada golpe. Al final, <code class="i">turns</code> debe ser 4.</li>
+</ol>`,
+    hint: `while hp > 0:   luego, con sangría:   hp -= 30   turns += 1   print("Boss HP:", hp)`,
+    starter: `hp = 100
+turns = 0
+
+# Escribe tu bucle while aquí
+
+print("Boss defeated in", turns, "turns!")
+`,
+    words: [["corridor", "pasillo: un paso largo y estrecho dentro de un edificio"], ["to be trapped", "estar atrapado, sin poder escapar"], ["to skip", "saltarse un paso e ir al siguiente"]]
+  },
+  def: {
+    tab: "funciones", arc: "El Maestro", title: "El Grimorio de Def-sensei",
+    story: `
+<p>En el siguiente pueblo, un mago anciano te mira entrenar. Su túnica tiene la palabra <code class="i">def</code> bordada en la espalda.</p>
+<p><span class="dialogue">"Muchacho. ¿Por qué gritas el conjuro completo de la bola de fuego cada vez? Séllalo en una <strong>función</strong>. Así solo dices su nombre."</span></p>
+@@ex1@@
+<p>Def-sensei te golpea la frente con su bastón. <span class="dialogue">"Recuerda las cuatro partes."</span></p>
+<ul>
+<li><code class="i">def</code> crea el hechizo. El nombre sigue las mismas reglas que las variables.</li>
+<li><code class="i">target</code> y <code class="i">power</code> son <strong>parámetros</strong>: los ingredientes que le pasas.</li>
+<li><code class="i">return</code> devuelve un resultado, para que lo guardes en una variable.</li>
+<li>Sin <code class="i">return</code>, la función devuelve <code class="i">None</code>: un frasco de poción vacío.</li>
+</ul>
+<h3>Ingredientes por defecto</h3>
+<p>Los parámetros pueden tener un valor por defecto. Si no lo pasas, Python usa ese valor.</p>
+@@ex2@@
+<div class="sysmsg">[SISTEMA] Consejo: <b>print</b> muestra algo en la pantalla. <b>return</b> devuelve un valor al código. ¡No son lo mismo!</div>`,
+    quest: `<ol>
+<li>Escribe una función <code class="i">heal(hp, amount=20)</code>.</li>
+<li>Debe <strong>devolver</strong> el nuevo hp (<code class="i">hp + amount</code>).</li>
+<li>Pruébala: <code class="i">heal(10)</code> debe dar <code class="i">30</code>, <code class="i">heal(5, 50)</code> debe dar <code class="i">55</code>.</li>
+</ol>`,
+    hint: `def heal(hp, amount=20):  y en la línea siguiente, con sangría:  return hp + amount`,
+    starter: `# Escribe la función heal aquí
+
+
+print(heal(10))      # debe mostrar 30
+print(heal(5, 50))   # debe mostrar 55
+`,
+    words: [["to seal", "sellar, cerrar bien (aquí: guardar un hechizo)"], ["ingredient", "ingrediente: una de las cosas que necesitas para hacer algo"], ["embroidered", "bordado con hilo"]]
+  },
+  match: {
+    tab: "match / case", arc: "La Capital", title: "El Libro del Guardián",
+    story: `
+<p>La capital del reino tiene una puerta enorme. Un caballero cansado revisa la clase de cada viajero y le entrega un arma. Usa una cadena larguísima de <code class="i">if / elif / elif / elif</code> y parece que va a llorar.</p>
+<div class="sysmsg">[SISTEMA] Nueva habilidad desbloqueada: <b>MATCH / CASE</b> — compara un valor con muchos patrones.</div>
+@@ex1@@
+<ul>
+<li><code class="i">match</code> recibe el valor que quieres revisar.</li>
+<li>Cada <code class="i">case</code> es un valor posible.</li>
+<li><code class="i">case "a" | "b":</code> significa "a <strong>o</strong> b".</li>
+<li><code class="i">case _:</code> atrapa todo lo demás, como <code class="i">else</code>.</li>
+</ul>
+<p>Aquí está la misma lógica con <code class="i">if/elif</code>. Las dos funcionan, pero <code class="i">match</code> se lee mejor cuando revisas un valor muchas veces.</p>
+@@ex2@@
+<p>El caballero derrama una sola lágrima de gratitud. <span class="dialogue">"Gracias, forastero. Ahora, por favor, automatiza mi trabajo."</span></p>`,
+    quest: `<ol>
+<li>Completa la función <code class="i">weapon_for(job)</code> usando <code class="i">match</code>.</li>
+<li>Devuelve <code class="i">"sword"</code> para <code class="i">"warrior"</code> o <code class="i">"knight"</code>, <code class="i">"staff"</code> para <code class="i">"mage"</code>, <code class="i">"bow"</code> para <code class="i">"archer"</code>.</li>
+<li>Devuelve <code class="i">"fists"</code> para cualquier otra cosa.</li>
+</ol>`,
+    hint: `Dentro de la función: match job:  luego  case "warrior" | "knight":  return "sword"  … y termina con  case _:  return "fists"`,
+    starter: `def weapon_for(job):
+    # usa match / case aquí
+    pass
+
+
+print(weapon_for("knight"))   # sword
+print(weapon_for("mage"))     # staff
+print(weapon_for("bard"))     # fists
+`,
+    words: [["ledger", "libro de registros"], ["to hand (someone) something", "entregarle algo en la mano a alguien"], ["to shed a tear", "derramar una lágrima, llorar un poco"]]
+  },
+  dict: {
+    tab: "diccionarios", arc: "El Despertar", title: "¡Ventana de Estado, Ábrete!",
+    story: `
+<p>Todo héroe isekai tarde o temprano grita las palabras sagradas. Levantas la mano.</p>
+<p><span class="dialogue">"¡STATUS!"</span></p>
+<div class="sysmsg">[SISTEMA] Tu ventana de estado es un <b>diccionario</b>: cada valor tiene un nombre (una <b>clave</b>).</div>
+@@ex1@@
+<ul>
+<li>Un diccionario usa <code class="i">{ clave: valor }</code>.</li>
+<li><code class="i">status["hp"]</code> lee un valor. <code class="i">status["hp"] = 90</code> lo cambia.</li>
+<li>Asignar una clave nueva la agrega: <code class="i">status["title"] = "Hero"</code>.</li>
+<li><code class="i">status.get("mp", 0)</code> lee con seguridad: si la clave no existe, recibes <code class="i">0</code> en vez de un error.</li>
+</ul>
+<h3>Recorrer la ventana</h3>
+@@ex2@@`,
+    quest: `<ol>
+<li>Crea un diccionario <code class="i">status</code> con <code class="i">"name": "Lydson"</code>, <code class="i">"level": 1</code> y <code class="i">"hp": 100</code>.</li>
+<li>¡Sube de nivel! Suma 1 a <code class="i">status["level"]</code>.</li>
+<li>Recórrelo con <code class="i">.items()</code> y muestra cada línea como <code class="i">clave: valor</code> (por ejemplo <code class="i">level: 2</code>).</li>
+</ol>`,
+    hint: `status["level"] += 1   luego   for key, value in status.items(): print(f"{key}: {value}")`,
+    starter: `# Crea el diccionario status
+
+
+# Sube de nivel
+
+
+# Muestra la ventana de estado
+`,
+    words: [["to raise your hand", "levantar la mano"], ["sacred", "sagrado, muy especial"], ["to level up", "subir de nivel (videojuegos)"]]
+  },
+  boss: {
+    tab: "jefe final", arc: "Arco Final", title: "El Rey Slime",
+    story: `
+<p>El suelo tiembla. Aparece un slime del tamaño de un castillo, con una coronita de oro.</p>
+<p><span class="dialogue">"Así que tú eres el forastero que sabe Python,"</span> burbujea. <span class="dialogue">"Veamos si recuerdas TODO."</span></p>
+<div class="sysmsg">[SISTEMA] Misión final: combina <b>funciones</b>, <b>bucles</b>, <b>if</b> y <b>return</b>.</div>
+<p>Recuerdas un truco útil: <code class="i">enumerate()</code> te da la posición y el elemento al mismo tiempo.</p>
+@@ex1@@
+<p>Y un <code class="i">return</code> dentro de un bucle detiene toda la función de inmediato. Perfecto para acabar con un jefe.</p>
+@@ex2@@`,
+    quest: `<ol>
+<li>Completa <code class="i">fight(boss_hp, damages)</code>. <code class="i">damages</code> es una lista de números, uno por turno.</li>
+<li>Resta cada daño de <code class="i">boss_hp</code>, en orden.</li>
+<li>Cuando <code class="i">boss_hp</code> llegue a 0 o menos, <strong>devuelve el número de turno</strong> (el primer turno es 1).</li>
+<li>Si el jefe sobrevive a todos los turnos, devuelve <code class="i">-1</code>.</li>
+</ol>`,
+    hint: `for turn, dmg in enumerate(damages, start=1): boss_hp -= dmg; if boss_hp <= 0: return turn. Después del bucle: return -1.`,
+    starter: `def fight(boss_hp, damages):
+    # Tu hechizo final
+    pass
+
+
+print(fight(50, [20, 20, 20]))   # 3
+print(fight(100, [10, 10]))      # -1
+print(fight(10, [50, 1]))        # 1
+`,
+    words: [["to gurgle", "burbujear, hacer un sonido de líquido"], ["to survive", "sobrevivir, seguir vivo"], ["otherworlder", "alguien de otro mundo (jerga isekai)"]]
+  }
+};
+
+</script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const ORDER = ["print", "vars", "math", "if", "for", "list", "while", "def", "match", "dict", "boss"];
+  const LANGS = ["en", "es", "pt"];
+
+  /* ---------- storage (best effort) ---------- */
+  const KEY = "isekai-python-v1";
+  let save = { done: {}, current: 0, drafts: {}, lang: null, theme: null };
+  try { const raw = localStorage.getItem(KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch (e) {}
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch (e) {} }
+
+  let lang = save.lang;
+  if (!LANGS.includes(lang)) {
+    const nav = (navigator.language || "en").toLowerCase();
+    lang = nav.startsWith("pt") ? "pt" : nav.startsWith("es") ? "es" : "en";
+  }
+  const U = () => UI[lang];
+  const ch = (i) => Object.assign({ id: ORDER[i] }, CODE[ORDER[i]], TEXT[lang][ORDER[i]]);
+  const N = ORDER.length;
+  const FINAL_XP = ORDER.reduce((s, id) => s + CODE[id].xp, 0);
+  let cur = Math.min(Math.max(0, save.current || 0), N - 1);
+
+  /* ---------- theme ---------- */
+  const root = document.documentElement;
+  function effectiveTheme() {
+    const t = root.getAttribute("data-theme");
+    if (t === "light" || t === "dark") return t;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  }
+  function applyTheme() {
+    if (save.theme) root.setAttribute("data-theme", save.theme);
+    $("themeBtn").textContent = effectiveTheme() === "dark" ? U().toLight : U().toDark;
+  }
+  $("themeBtn").addEventListener("click", () => {
+    save.theme = effectiveTheme() === "dark" ? "light" : "dark"; persist(); applyTheme();
+  });
+
+  /* ---------- tiny highlighter ---------- */
+  const KW = new Set("def return if elif else for in while break continue match case and or not import from as pass True False None class try except finally with lambda is global".split(" "));
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function highlight(src) {
+    const re = /(#[^\n]*)|([fF]?"(?:[^"\\\n]|\\.)*"|[fF]?'(?:[^'\\\n]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)(?=\s*\()|([A-Za-z_]\w*)/g;
+    let out = "", last = 0, m;
+    while ((m = re.exec(src))) {
+      out += esc(src.slice(last, m.index));
+      if (m[1]) out += `<span class="tk-com">${esc(m[1])}</span>`;
+      else if (m[2]) out += `<span class="tk-str">${esc(m[2])}</span>`;
+      else if (m[3]) out += `<span class="tk-num">${m[3]}</span>`;
+      else if (m[4]) out += KW.has(m[4]) ? `<span class="tk-kw">${m[4]}</span>` : `<span class="tk-fn">${m[4]}</span>`;
+      else out += KW.has(m[5]) ? `<span class="tk-kw">${m[5]}</span>` : m[5];
+      last = re.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+
+  /* ---------- terminal + bridges used by Python ---------- */
+  const out = $("out");
+  window.termWrite = function (text, kind) {
+    const span = document.createElement("span");
+    span.className = "o-" + (kind || "out");
+    span.textContent = text;
+    out.appendChild(span);
+    if (out.childNodes.length > 4000) out.removeChild(out.firstChild);
+    out.scrollTop = out.scrollHeight;
+  };
+  const sys = (t, k) => window.termWrite(t + "\n", k || "sys");
+  window.uiText = (k) => U()[k] || UI.en[k] || k;
+  window.reportError = function (name, msg, line) {
+    const where = line ? ` (${U().line} ${line})` : "";
+    sys(`${name}${where}: ${msg}`, "err");
+    let tip = U().tips[name];
+    if (name === "SyntaxError" && /=\s*$/m.test(lastSrc.split("\n")[(line || 1) - 1] || "")) tip = U().tipEmptyValue;
+    if (tip) sys("[SYSTEM] " + tip, "sys");
+    lastError = { name, line, tip };
+  };
+  let lastSrc = "", lastError = null;
+
+  /* ---------- editor ---------- */
+  const code = $("code"), gutter = $("gutter");
+  function updateGutter() {
+    const n = code.value.split("\n").length;
+    let s = ""; for (let i = 1; i <= n; i++) s += i + "\n";
+    gutter.textContent = s;
+    gutter.scrollTop = code.scrollTop;
+  }
+  code.addEventListener("input", () => { updateGutter(); save.drafts[ORDER[cur]] = code.value; persist(); });
+  code.addEventListener("scroll", () => { gutter.scrollTop = code.scrollTop; });
+  function insert(text) {
+    code.setRangeText(text, code.selectionStart, code.selectionEnd, "end");
+    code.dispatchEvent(new Event("input"));
+  }
+  code.addEventListener("keydown", (ev) => {
+    if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") { ev.preventDefault(); run(); return; }
+    if (ev.key === "Tab" && !ev.shiftKey) { ev.preventDefault(); insert("    "); return; }
+    if (ev.key === "Tab" && ev.shiftKey) {
+      ev.preventDefault();
+      const s = code.selectionStart, ls = code.value.lastIndexOf("\n", s - 1) + 1;
+      const lead = code.value.slice(ls).match(/^ {1,4}/);
+      if (lead) { code.setRangeText("", ls, ls + lead[0].length, "start"); code.selectionStart = code.selectionEnd = Math.max(ls, s - lead[0].length); code.dispatchEvent(new Event("input")); }
+      return;
+    }
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      const s = code.selectionStart, ls = code.value.lastIndexOf("\n", s - 1) + 1;
+      const line = code.value.slice(ls, s);
+      let indent = line.match(/^\s*/)[0];
+      if (/:\s*(#.*)?$/.test(line)) indent += "    ";
+      insert("\n" + indent);
+    }
+  });
+
+  /* loop guard that keeps line numbers intact */
+  function guardLoops(src) {
+    return src.split("\n").map((l) => {
+      const m = l.match(/^(\s*)while\s+(.*):\s*(#[^'"]*)?$/);
+      return m ? `${m[1]}while __g() and (${m[2]}):${m[3] ? " " + m[3] : ""}` : l;
+    }).join("\n");
+  }
+
+  /* ---------- feedback bar ---------- */
+  function feedback(kind, title, msg, showNext) {
+    const fb = $("feedback");
+    fb.className = "feedback " + kind; fb.hidden = false;
+    $("fbTitle").textContent = title;
+    $("fbMsg").textContent = msg || "";
+    const nb = $("fbNext");
+    nb.hidden = !(showNext && cur < N - 1);
+    nb.textContent = U().fbNext;
+  }
+  $("fbNext").addEventListener("click", () => go(cur + 1));
+
+  /* ---------- running ---------- */
+  let ready = false, busy = false;
+  window.pyReady = function () {
+    ready = true;
+    setStatus();
+    $("runBtn").disabled = false;
+    sys(U().bound);
+  };
+  function setStatus() {
+    const s = $("pyStatus");
+    s.textContent = ready ? U().ready : U().loading;
+    s.classList.toggle("ready", ready);
+  }
+
+  function run() {
+    if (!ready || busy) return;
+    busy = true;
+    const c = ch(cur);
+    sys("\n" + U().casting, "dim");
+    setTimeout(() => {
+      lastSrc = code.value; lastError = null;
+      let res;
+      try { res = window.pyRun(guardLoops(code.value), c.test, lang); }
+      catch (e) { res = "error"; sys("Internal error: " + e, "err"); }
+      busy = false;
+      if (res === "ok") return completeQuest(c);
+      if (res.startsWith("fail:")) {
+        const msg = res.slice(5);
+        sys(U().notYet + " " + msg, "gold");
+        feedback("fail", U().fbFail, msg);
+      } else {
+        const where = lastError && lastError.line ? ` (${U().line} ${lastError.line})` : "";
+        feedback("err", U().fbErr + where, lastError && lastError.tip ? lastError.tip : U().fbErrMsg);
+      }
+    }, 20);
+  }
+
+  function completeQuest(c) {
+    const first = !save.done[c.id];
+    save.done[c.id] = true; persist();
+    sys(U().complete(c.title), "ok");
+    if (first) sys(`${U().bound.split("]")[0]}] +${c.xp} XP`, "gold"); else sys(U().again, "dim");
+    const allDone = ORDER.every((id) => save.done[id]);
+    if (allDone && first) sys(U().allDone, "gold");
+    else if (cur < N - 1) sys(U().nextUnlocked(ch(cur + 1).title), "sys");
+    feedback("ok", first ? U().fbOk(c.xp) : U().fbAgain, allDone && first ? U().allDone.replace("[SYSTEM] ", "") : "", true);
+    renderHUD(); renderTabs(); updateQuestBadge();
+    if (first) toast(U().fbOk(c.xp));
+  }
+
+  $("runBtn").addEventListener("click", run);
+  $("clearBtn").addEventListener("click", () => { out.textContent = ""; });
+  $("resetBtn").addEventListener("click", () => {
+    code.value = ch(cur).starter; delete save.drafts[ORDER[cur]]; persist(); updateGutter();
+    $("feedback").hidden = true;
+    sys(U().resetMsg);
+  });
+
+  const replIn = $("replIn");
+  const history = []; let hIdx = 0;
+  replIn.addEventListener("keydown", (ev) => {
+    if (ev.key === "ArrowUp" && history.length) { ev.preventDefault(); hIdx = Math.max(0, hIdx - 1); replIn.value = history[hIdx]; return; }
+    if (ev.key === "ArrowDown" && history.length) { ev.preventDefault(); hIdx = Math.min(history.length, hIdx + 1); replIn.value = history[hIdx] || ""; return; }
+    if (ev.key !== "Enter") return;
+    const line = replIn.value; if (!line.trim()) return;
+    if (!ready) { sys(U().notReady); return; }
+    history.push(line); hIdx = history.length; replIn.value = "";
+    window.termWrite(">>> " + line + "\n", "gold");
+    lastSrc = line;
+    try { window.pyRepl(guardLoops(line)); } catch (e) { sys("Internal error: " + e, "err"); }
+  });
+
+  /* ---------- rendering ---------- */
+  function renderHUD() {
+    const doneIds = ORDER.filter((id) => save.done[id]);
+    const xp = doneIds.reduce((s, id) => s + CODE[id].xp, 0);
+    $("lv").textContent = "Lv. " + (1 + doneIds.length);
+    $("xptext").textContent = `${xp} / ${FINAL_XP} XP`;
+    $("xpfill").style.width = (xp / FINAL_XP * 100).toFixed(1) + "%";
+  }
+
+  function renderStatic() {
+    document.documentElement.lang = lang === "pt" ? "pt-BR" : lang;
+    document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = U()[el.dataset.i18n]; });
+    $("replIn").placeholder = U().replPh;
+    document.querySelectorAll("#langSeg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    setStatus(); applyTheme();
+    if (!$("feedback").hidden) $("feedback").hidden = true;
+  }
+
+  function renderTabs() {
+    const nav = $("tabs"); nav.textContent = "";
+    ORDER.forEach((id, i) => {
+      const b = document.createElement("button");
+      b.textContent = `${i + 1} · ${TEXT[lang][id].tab}`;
+      if (i === cur) { b.classList.add("active"); b.setAttribute("aria-current", "page"); }
+      if (save.done[id]) b.classList.add("done");
+      b.addEventListener("click", () => go(i));
+      nav.appendChild(b);
+    });
+    const active = nav.querySelector(".active"); if (active) active.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }
+
+  function updateQuestBadge() {
+    const c = ch(cur), el = $("questReward"); if (!el) return;
+    const done = !!save.done[c.id];
+    el.textContent = `${U().questReward} ${c.xp} XP` + (done ? " · " + U().cleared : "");
+    el.classList.toggle("cleared", done);
+  }
+
+  function renderStory() {
+    const c = ch(cur), u = U();
+    const html = c.story.replace(/@@(\w+)@@/g, (_, k) =>
+      `<div class="codeblock"><pre><code>${highlight(c.examples[k])}</code></pre><button data-ex="${k}" title="${esc(u.loadTitle)}">${esc(u.load)}</button></div>`);
+    const words = c.words.map(([w, d]) => `<dt>${w}</dt><dd>${d}</dd>`).join("");
+    $("story").innerHTML = `
+      <p class="arc">${u.chapterOf(cur + 1, N)} · ${c.arc}</p>
+      <h2>${c.title}</h2>
+      ${html}
+      <div class="quest">
+        <span class="reward" id="questReward"></span>
+        <p class="quest-sys">${u.questSys(c.title)}</p>
+        <h3>${u.yourQuest}</h3>
+        ${c.quest}
+        <p class="quest-how">${u.questHow}</p>
+        <div class="hint"><button type="button" id="hintBtn">${u.hintBtn}</button><p id="hintText" hidden>${esc(c.hint)}</p></div>
+      </div>
+      <div class="guild"><h4>${u.guild}</h4><dl>${words}</dl></div>
+      <div class="pager">
+        <button id="prevBtn" ${cur === 0 ? "disabled" : ""}>${u.prev}</button>
+        <button id="nextBtn" ${cur === N - 1 ? "disabled" : ""}>${u.next}</button>
+      </div>`;
+    updateQuestBadge();
+    $("story").querySelectorAll("[data-ex]").forEach((b) => b.addEventListener("click", () => {
+      code.value = c.examples[b.dataset.ex]; updateGutter();
+      sys(U().exLoaded);
+    }));
+    $("hintBtn").addEventListener("click", () => { $("hintText").hidden = false; });
+    $("prevBtn").addEventListener("click", () => go(cur - 1));
+    $("nextBtn").addEventListener("click", () => go(cur + 1));
+  }
+
+  function go(i) {
+    if (i < 0 || i >= N) return;
+    cur = i; save.current = i; persist();
+    renderTabs(); renderStory();
+    code.value = save.drafts[ORDER[cur]] ?? ch(cur).starter; updateGutter();
+    $("feedback").hidden = true;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  document.querySelectorAll("#langSeg button").forEach((b) => b.addEventListener("click", () => {
+    if (b.dataset.lang === lang) return;
+    // swap an untouched starter for the new language's starter
+    const id = ORDER[cur];
+    if (code.value === TEXT[lang][id].starter) { delete save.drafts[id]; }
+    lang = b.dataset.lang; save.lang = lang; persist();
+    renderStatic(); renderTabs(); renderStory();
+    if (!save.drafts[id]) { code.value = ch(cur).starter; updateGutter(); }
+  }));
+
+  let tt;
+  function toast(msg) {
+    const t = $("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(tt); tt = setTimeout(() => t.classList.remove("show"), 2600);
+  }
+
+  renderStatic(); renderHUD(); go(cur);
+  if (typeof window.brython !== "function") {
+    $("pyStatus").textContent = U().failed;
+    sys(U().loadFail, "err");
+  }
+  setTimeout(() => { if (!ready) { $("pyStatus").textContent = U().slow; sys(U().slowMsg, "err"); } }, 25000);
+})();
+
+</script>
+</body>
+</html>

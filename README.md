@@ -6,7 +6,7 @@ You're transported to a fantasy world with no useful abilities. Programming conc
 
 ## Play
 
-Public URL: *coming in week 1*. To play locally, open `index.html` in a modern browser (an internet connection is needed to load Python).
+**Public URL: https://lydson.github.io/isekai_python_academy/** (live since 26 Oct 2026). To play locally, open `index.html` in a modern browser (an internet connection is needed to load Python).
 
 ## Current status
 

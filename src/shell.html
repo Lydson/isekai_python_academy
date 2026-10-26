@@ -1,0 +1,411 @@
+<title>Isekai Python Academy</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Grenze+Gotisch:wght@500;700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a light-novel page on the left, the hero's "System Window" workbench (spell editor + terminal) on the right.
+   Dark night-world is the default look; a "daylight guild hall" palette is available through the theme button. */
+:root {
+  color-scheme: dark;
+  --night: #110f1d;
+  --glow: #231c45;
+  --panel: #1a1729;
+  --panel-2: #221e36;
+  --line: #34304f;
+  --parch: #ece4cf;
+  --strong: #ffffff;
+  --muted: #a39cbd;
+  --gold: #e6c36a;
+  --on-gold: #2a1f05;
+  --system: #74b9ff;
+  --on-system: #0b1830;
+  --system-dim: #1d2e4a;
+  --sys-border: #355a8c;
+  --gutter-bg: #0d0b17;
+  --term-bg: #08070f;
+  --quest-a: #2a2316;
+  --quest-b: #1d1912;
+  --quest-border: #5d4c22;
+  --ok: #7fd69a;
+  --ok-bg: #16301f;
+  --done-border: #2f5a3d;
+  --bad: #ff8a80;
+  --bad-bg: #3a1a1c;
+  --warn: #ffcf70;
+  --kw: #d4a5ff;
+  --str: #b5e08a;
+  --num: #ffb37a;
+  --com: #7d7899;
+  --display: "Grenze Gotisch", "Palatino Linotype", Georgia, serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --night: #f3f1f8; --glow: #e3dcf7; --panel: #ffffff; --panel-2: #ebe7f4; --line: #d3cde3;
+    --parch: #1e1930; --strong: #000000; --muted: #5c5577; --gold: #8f6200; --on-gold: #ffffff;
+    --system: #1c5fc2; --on-system: #ffffff; --system-dim: #e4eefc; --sys-border: #9dbbe8;
+    --gutter-bg: #f1eff7; --term-bg: #fbfaff; --quest-a: #fbf3df; --quest-b: #f7edd3; --quest-border: #dcc58a;
+    --ok: #18794a; --ok-bg: #dff3e6; --done-border: #9fd0b2; --bad: #b8322a; --bad-bg: #fbe3e1; --warn: #8a5a00;
+    --kw: #7a3cc2; --str: #3b7613; --num: #ad4f00; --com: #8a84a1;
+  }
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+  --night: #f3f1f8; --glow: #e3dcf7; --panel: #ffffff; --panel-2: #ebe7f4; --line: #d3cde3;
+  --parch: #1e1930; --strong: #000000; --muted: #5c5577; --gold: #8f6200; --on-gold: #ffffff;
+  --system: #1c5fc2; --on-system: #ffffff; --system-dim: #e4eefc; --sys-border: #9dbbe8;
+  --gutter-bg: #f1eff7; --term-bg: #fbfaff; --quest-a: #fbf3df; --quest-b: #f7edd3; --quest-border: #dcc58a;
+  --ok: #18794a; --ok-bg: #dff3e6; --done-border: #9fd0b2; --bad: #b8322a; --bad-bg: #fbe3e1; --warn: #8a5a00;
+  --kw: #7a3cc2; --str: #3b7613; --num: #ad4f00; --com: #8a84a1;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  background: var(--night);
+  color: var(--parch);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 16px 28px;
+  background-image: radial-gradient(1200px 500px at 80% -10%, var(--glow) 0%, transparent 60%);
+  background-attachment: fixed;
+}
+button { font: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--system); outline-offset: 2px; }
+
+.wrap { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+
+header.hud {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px;
+  border-bottom: 1px solid var(--line); padding-bottom: 12px;
+}
+.brand { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; min-width: 0; }
+.brand h1 { font-family: var(--display); font-weight: 700; font-size: 2rem; margin: 0; color: var(--gold); letter-spacing: .01em; line-height: 1.1; }
+.brand span { color: var(--muted); font-size: .9rem; font-style: italic; }
+.right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+@media (max-width: 900px) { .right { align-items: flex-start; } }
+.stats { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-family: var(--mono); font-size: .8rem; }
+.stat-label { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.lv { color: var(--gold); font-weight: 600; font-size: 1rem; }
+.xpbar { width: 150px; height: 8px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.xpbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--system), var(--gold)); width: 0%; transition: width .6s ease; }
+#pyStatus { color: var(--warn); }
+#pyStatus.ready { color: var(--ok); }
+.settings { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button, .theme-btn {
+  background: var(--panel); color: var(--muted); border: none; padding: 4px 10px; font-family: var(--mono); font-size: .75rem;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--system); color: var(--on-system); font-weight: 600; }
+.theme-btn { border: 1px solid var(--line); border-radius: 6px; color: var(--parch); }
+
+nav.chapters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+nav.chapters button {
+  flex: 0 0 auto; background: transparent; color: var(--muted);
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; font-family: var(--mono); font-size: .78rem; white-space: nowrap;
+}
+nav.chapters button.active { background: var(--gold); color: var(--on-gold); border-color: var(--gold); font-weight: 600; }
+nav.chapters button.done:not(.active) { color: var(--ok); border-color: var(--done-border); }
+nav.chapters button.done::before { content: "✓ "; }
+
+main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { main { grid-template-columns: minmax(0, 1fr); } }
+
+article.story { min-width: 0; max-width: 68ch; }
+.arc { font-family: var(--mono); font-size: .75rem; letter-spacing: .14em; text-transform: uppercase; color: var(--system); margin: 4px 0 0; }
+article.story h2 { font-family: var(--display); font-weight: 500; font-size: 2.3rem; line-height: 1.1; margin: 4px 0 14px; color: var(--parch); text-wrap: balance; }
+article.story p { margin: 0 0 14px; }
+article.story h3 { font-family: var(--display); font-weight: 500; font-size: 1.45rem; color: var(--gold); margin: 26px 0 8px; }
+article.story ul { padding-left: 1.2em; margin: 0 0 14px; }
+article.story li { margin-bottom: 6px; }
+.dialogue { color: var(--gold); }
+code.i { font-family: var(--mono); font-size: .86em; background: var(--panel-2); padding: 1px 5px; border-radius: 4px; color: var(--parch); }
+
+.sysmsg {
+  font-family: var(--mono); font-size: .85rem; color: var(--system);
+  background: var(--system-dim); border: 1px solid var(--sys-border); border-radius: 6px;
+  padding: 10px 14px; margin: 0 0 14px;
+}
+.sysmsg b { color: var(--strong); font-weight: 600; }
+
+.codeblock { position: relative; margin: 0 0 14px; }
+.codeblock pre {
+  margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+  padding: 12px 14px; overflow-x: auto; font-family: var(--mono); font-size: .84rem; line-height: 1.55;
+}
+.codeblock button {
+  position: absolute; top: 6px; right: 6px; background: var(--panel-2); color: var(--system);
+  border: 1px solid var(--sys-border); border-radius: 4px; font-family: var(--mono); font-size: .72rem; padding: 2px 8px;
+}
+.codeblock button:hover { background: var(--system-dim); }
+.tk-kw { color: var(--kw); } .tk-str { color: var(--str); } .tk-num { color: var(--num); } .tk-com { color: var(--com); font-style: italic; } .tk-fn { color: var(--system); }
+
+.quest {
+  border: 1px solid var(--quest-border); background: linear-gradient(180deg, var(--quest-a), var(--quest-b));
+  border-radius: 8px; padding: 14px 16px; margin: 22px 0 14px;
+}
+.quest h3 { margin: 0 0 6px !important; }
+.quest .reward { font-family: var(--mono); font-size: .75rem; color: var(--gold); letter-spacing: .08em; text-transform: uppercase; }
+.quest .reward.cleared { color: var(--ok); }
+.quest ol { margin: 8px 0 0; padding-left: 1.3em; }
+.quest-sys { font-family: var(--mono); font-size: .78rem; color: var(--system); margin: 0 0 8px !important; }
+.quest-sys b { color: var(--strong); }
+.quest-how { margin: 10px 0 0 !important; font-size: .9rem; color: var(--muted); }
+.hint { margin-top: 10px; }
+.hint button { background: none; border: none; color: var(--muted); text-decoration: underline; padding: 0; font-size: .85rem; }
+.hint p { margin: 6px 0 0 !important; font-size: .9rem; color: var(--muted); font-family: var(--mono); }
+
+.guild { border-left: 3px solid var(--system); padding: 4px 0 4px 14px; margin: 22px 0 0; }
+.guild h4 { margin: 0 0 6px; font-family: var(--mono); font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--system); }
+.guild dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; font-size: .92rem; }
+.guild dt { font-weight: 600; color: var(--parch); }
+.guild dd { margin: 0; color: var(--muted); }
+@media (max-width: 480px) { .guild dl { grid-template-columns: 1fr; } .guild dd { margin-bottom: 6px; } }
+
+.pager { display: flex; justify-content: space-between; gap: 10px; margin-top: 24px; }
+.pager button { background: var(--panel); color: var(--parch); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font-size: .9rem; }
+.pager button:disabled { opacity: .35; cursor: default; }
+
+section.bench {
+  min-width: 0; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px);
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--panel); border: 1px solid var(--sys-border); border-radius: 10px; padding: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.18);
+}
+@media (max-width: 900px) { section.bench { position: static; } }
+.bench-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: var(--mono); font-size: .75rem; color: var(--system); letter-spacing: .1em; text-transform: uppercase; }
+.bench-head .file { color: var(--muted); text-transform: none; letter-spacing: 0; }
+
+.editor { display: flex; background: var(--term-bg); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.gutter {
+  font-family: var(--mono); font-size: .84rem; line-height: 1.55; color: var(--com); text-align: right;
+  padding: 10px 8px; user-select: none; background: var(--gutter-bg); min-width: 38px; white-space: pre; overflow: hidden;
+}
+#code {
+  flex: 1; min-width: 0; height: 280px; resize: vertical; border: none; outline: none;
+  background: transparent; color: var(--parch); font-family: var(--mono); font-size: .84rem; line-height: 1.55;
+  padding: 10px 12px; tab-size: 4; white-space: pre; overflow: auto;
+}
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { border-radius: 6px; padding: 7px 14px; font-size: .88rem; border: 1px solid var(--line); background: var(--panel-2); color: var(--parch); }
+.btn:hover { border-color: var(--muted); }
+.btn.run { background: var(--system); color: var(--on-system); border-color: var(--system); font-weight: 600; padding-inline: 18px; }
+.btn:disabled { opacity: .5; cursor: wait; }
+.kbd { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-left: auto; }
+
+.feedback {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px;
+  border-radius: 6px; padding: 10px 12px; font-size: .92rem; border: 1px solid var(--line);
+}
+.feedback.ok { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
+.feedback.fail { background: var(--quest-a); border-color: var(--quest-border); color: var(--parch); }
+.feedback.err { background: var(--bad-bg); border-color: var(--bad); color: var(--parch); }
+.feedback .fb-title { font-weight: 600; display: block; }
+.feedback.fail .fb-title { color: var(--gold); }
+.feedback.err .fb-title { color: var(--bad); }
+.feedback .fb-msg { font-family: var(--mono); font-size: .8rem; }
+.feedback > div { min-width: 0; flex: 1 1 240px; }
+.feedback button { background: var(--ok); color: var(--panel); border: none; border-radius: 6px; padding: 6px 12px; font-weight: 600; }
+
+.term {
+  background: var(--term-bg); border: 1px solid var(--line); border-radius: 6px; font-family: var(--mono); font-size: .82rem; line-height: 1.5;
+  display: flex; flex-direction: column; min-height: 0;
+}
+#out { padding: 10px 12px; height: 210px; overflow: auto; white-space: pre-wrap; word-break: break-word; resize: vertical; }
+#out .o-out { color: var(--parch); }
+#out .o-err { color: var(--bad); }
+#out .o-sys { color: var(--system); }
+#out .o-ok { color: var(--ok); }
+#out .o-gold { color: var(--gold); }
+#out .o-dim { color: var(--com); }
+.repl { display: flex; align-items: center; border-top: 1px solid var(--line); padding: 6px 12px; gap: 8px; }
+.repl label { color: var(--gold); }
+#replIn { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--parch); font-family: var(--mono); font-size: .82rem; }
+
+footer.credit {
+  margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 16px;
+  font-family: var(--mono); font-size: .78rem; color: var(--muted);
+}
+footer.credit .by { font-family: var(--display); font-size: 1.25rem; color: var(--gold); letter-spacing: .02em; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%) translateY(20px);
+  background: var(--system-dim); color: var(--strong); border: 1px solid var(--system); border-radius: 8px; padding: 10px 18px;
+  font-family: var(--mono); font-size: .85rem; opacity: 0; pointer-events: none; transition: all .35s ease; z-index: 20; max-width: calc(100% - 32px);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+@media (prefers-reduced-motion: reduce) { .toast, .xpbar i { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="hud">
+    <div class="brand">
+      <h1>Isekai Python Academy</h1>
+      <span data-i18n="subtitle"></span>
+    </div>
+    <div class="right">
+      <div class="stats" aria-live="polite">
+        <span><span class="stat-label" data-i18n="hero"></span> Lydson</span>
+        <span class="lv" id="lv">Lv. 1</span>
+        <span class="xpbar" title="XP"><i id="xpfill"></i></span>
+        <span id="xptext">0 XP</span>
+        <span id="pyStatus"></span>
+      </div>
+      <div class="settings">
+        <div class="seg" role="group" aria-label="Language" id="langSeg">
+          <button data-lang="en">EN</button><button data-lang="es">ES</button><button data-lang="pt">PT-BR</button>
+        </div>
+        <button class="theme-btn" id="themeBtn"></button>
+      </div>
+    </div>
+  </header>
+
+  <nav class="chapters" id="tabs" aria-label="Chapters"></nav>
+
+  <main>
+    <article class="story" id="story"></article>
+
+    <section class="bench" aria-label="Spellbook">
+      <div class="bench-head"><span data-i18n="benchTitle"></span><span class="file">spell.py</span></div>
+      <div class="editor">
+        <div class="gutter" id="gutter" aria-hidden="true">1</div>
+        <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Python code editor"></textarea>
+      </div>
+      <div class="controls">
+        <button class="btn run" id="runBtn" disabled data-i18n="cast"></button>
+        <button class="btn" id="resetBtn" data-i18n="reset"></button>
+        <button class="btn" id="clearBtn" data-i18n="clear"></button>
+        <span class="kbd" data-i18n="kbd"></span>
+      </div>
+      <div class="feedback" id="feedback" hidden aria-live="polite">
+        <div><span class="fb-title" id="fbTitle"></span><span class="fb-msg" id="fbMsg"></span></div>
+        <button id="fbNext" hidden></button>
+      </div>
+      <div class="term">
+        <div id="out" role="log" aria-live="polite"></div>
+        <div class="repl">
+          <label for="replIn">&gt;&gt;&gt;</label>
+          <input id="replIn" autocomplete="off" spellcheck="false">
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="credit">
+    <span class="by">made by Lydson</span>
+    <span data-i18n="footer"></span>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/brython@3.13.2/brython.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/brython@3.13.2/brython_stdlib.js"></script>
+
+<script type="text/python">
+from browser import window
+import sys
+
+_state = {"buf": [], "ns": {}}
+
+class _Writer:
+    def __init__(self, kind):
+        self.kind = kind
+    def write(self, s):
+        s = str(s)
+        _state["buf"].append(s)
+        window.termWrite(s, self.kind)
+        return len(s)
+    def flush(self):
+        pass
+
+def _sealed_input(prompt=""):
+    raise RuntimeError(window.uiText("input"))
+
+def _make_guard():
+    count = [0]
+    def g():
+        count[0] += 1
+        if count[0] > 200000:
+            raise RuntimeError(window.uiText("loop"))
+        return True
+    return g
+
+def _new_ns():
+    return {"__name__": "__main__", "input": _sealed_input, "__g": _make_guard()}
+
+def _report(e):
+    name = type(e).__name__
+    line = getattr(e, "lineno", None)
+    if line is None:
+        tb = e.__traceback__
+        while tb is not None:
+            if tb.tb_frame.f_code.co_filename == "spell.py":
+                line = tb.tb_lineno
+            tb = tb.tb_next
+    window.reportError(name, str(e), line or 0)
+
+def py_run(src, test, lang):
+    _state["buf"] = []
+    ns = _new_ns()
+    _state["ns"] = ns
+    old_out, old_err = sys.stdout, sys.stderr
+    sys.stdout = _Writer("out")
+    sys.stderr = _Writer("err")
+    try:
+        try:
+            exec(compile(src, "spell.py", "exec"), ns)
+        except BaseException as e:
+            _report(e)
+            return "error"
+        if test:
+            tns = dict(ns)
+            tns["OUT"] = "".join(_state["buf"])
+            tns["SRC"] = src
+            tns["T"] = lambda en, es, pt: {"en": en, "es": es, "pt": pt}.get(lang, en)
+            sys.stdout = _Writer("dim")
+            try:
+                exec(test, tns)
+            except AssertionError as e:
+                return "fail:" + str(e)
+            except BaseException as e:
+                return "fail:" + window.uiText("crashed") + " " + type(e).__name__ + ": " + str(e)
+        return "ok"
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
+def py_repl(line):
+    ns = _state["ns"] or _new_ns()
+    _state["ns"] = ns
+    old_out, old_err = sys.stdout, sys.stderr
+    sys.stdout = _Writer("out")
+    sys.stderr = _Writer("err")
+    try:
+        try:
+            val = eval(compile(line, "<repl>", "eval"), ns)
+            if val is not None:
+                window.termWrite(repr(val) + "\n", "out")
+        except SyntaxError:
+            exec(compile(line, "<repl>", "exec"), ns)
+    except BaseException as e:
+        _report(e)
+    finally:
+        sys.stdout, sys.stderr = old_out, old_err
+
+window.pyRun = py_run
+window.pyRepl = py_repl
+window.pyReady()
+</script>
+
+<script>
+//@@CONTENT@@
+</script>
+<script>
+//@@APP@@
+</script>
